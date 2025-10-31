@@ -35,10 +35,26 @@
                 <div id="problem-instructions" class="problem-content">
                     Cargando...
                 </div>
+
+                <!-- Examples Section -->
+                <div class="examples-section" id="examples-section" style="display: none;">
+                    <h3>📝 Ejemplos</h3>
+                    <div id="examples-content">
+                        <!-- Examples will be loaded here -->
+                    </div>
+                </div>
+
                 <div class="dataset-info">
                     <h3>Dataset</h3>
                     <p>📁 <span id="dataset-name">dataset.csv</span></p>
-                    <button onclick="viewDataset()" class="btn-secondary">Ver Dataset</button>
+                    <button onclick="viewDataset()" class="btn-secondary">👁️ Ver Dataset</button>
+                </div>
+
+                <!-- Help Section -->
+                <div class="help-section">
+                    <button onclick="showHint()" class="btn-hint" id="hint-button">
+                        💡 Obtener Pista (<span id="hints-remaining">3</span> disponibles)
+                    </button>
                 </div>
             </div>
 
@@ -97,6 +113,45 @@
             <div class="modal-actions">
                 <button onclick="closeResultsModal()" class="btn-primary">Cerrar</button>
                 <button onclick="goBack()" class="btn-secondary">Volver al Inicio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hint Modal -->
+    <div id="hint-modal" class="modal" style="display: none;">
+        <div class="modal-content hint-modal">
+            <div class="modal-header">
+                <h2>💡 Pista <span id="current-hint-number"></span></h2>
+                <button onclick="closeHintModal()" class="close-btn">✕</button>
+            </div>
+            <div id="hint-content" class="hint-content">
+                <!-- Hint will be loaded here -->
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeHintModal()" class="btn-primary">Entendido</button>
+                <button onclick="showHint()" class="btn-secondary" id="next-hint-btn">
+                    Siguiente Pista (<span id="hints-remaining-modal">2</span>)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dataset Modal -->
+    <div id="dataset-modal" class="modal" style="display: none;">
+        <div class="modal-content dataset-modal">
+            <div class="modal-header">
+                <h2>📊 Dataset: <span id="dataset-modal-name"></span></h2>
+                <button onclick="closeDatasetModal()" class="close-btn">✕</button>
+            </div>
+            <div class="dataset-info-text">
+                <p><strong>Filas:</strong> <span id="dataset-rows">0</span> | <strong>Columnas:</strong> <span id="dataset-cols">0</span></p>
+            </div>
+            <div id="dataset-content" class="dataset-content">
+                <!-- Dataset table will be loaded here -->
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeDatasetModal()" class="btn-primary">Cerrar</button>
+                <button onclick="downloadDataset()" class="btn-secondary">⬇️ Descargar CSV</button>
             </div>
         </div>
     </div>

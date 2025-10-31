@@ -10,6 +10,18 @@
       "dataset": "sales_data.csv",
       "instructions": "Dado el dataset de ventas, calcula:\n1. Ranking de cada producto por total de ventas (descendente)\n2. Porcentaje de ventas acumulado\n3. Diferencia con el producto anterior en el ranking",
       "starterCode": "-- Escribe tu query aquí\nSELECT \n  product_id,\n  product_name,\n  total_sales\nFROM sales\n-- Completa la query",
+      "examples": [
+        {
+          "input": "Tabla sales con 3 productos:\nproduct_id | product_name | total_sales\n1          | Laptop       | 150000\n2          | Monitor      | 120000\n3          | Mouse        | 25000",
+          "output": "product_id | product_name | rank | cumulative_pct | diff_prev\n1          | Laptop       | 1    | 50.85%         | NULL\n2          | Monitor      | 2    | 91.53%         | 30000\n3          | Mouse        | 3    | 100.00%        | 95000",
+          "explanation": "El ranking se basa en total_sales descendente. El % acumulado suma las ventas hasta ese punto. diff_prev es la diferencia con el producto anterior."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Funciones de Ventana:</strong><br>Usa <code>ROW_NUMBER()</code> o <code>RANK()</code> con <code>ORDER BY total_sales DESC</code> para el ranking.<br><br>Ejemplo:<br><code>ROW_NUMBER() OVER (ORDER BY total_sales DESC) as rank</code>",
+        "<strong>Pista 2 - Porcentaje Acumulado:</strong><br>Usa <code>SUM()</code> como función de ventana con <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>.<br><br>Luego divide por el total global:<br><code>(running_total * 100.0 / total_sum) as cumulative_pct</code>",
+        "<strong>Pista 3 - Diferencia con Anterior:</strong><br>Usa <code>LAG(total_sales) OVER (ORDER BY total_sales DESC)</code> para obtener el valor anterior.<br><br>Ejemplo completo:<br><code>total_sales - LAG(total_sales) OVER (ORDER BY total_sales DESC) as diff_prev</code>"
+      ],
       "testCases": [
         {
           "description": "Debe incluir ranking correcto",
@@ -27,6 +39,17 @@
       "dataset": "transactions.csv",
       "instructions": "Identifica transacciones que:\n1. Superen 3 desviaciones estándar de la media\n2. Estén en el percentil 99\n3. Ocurran fuera del horario normal (8am-6pm)\nAgrupa por tipo de transacción y calcula métricas de anomalías.",
       "starterCode": "-- Escribe tu query aquí\nWITH stats AS (\n  SELECT \n    transaction_type,\n    AVG(amount) as avg_amount,\n    STDDEV(amount) as std_amount\n  FROM transactions\n  GROUP BY transaction_type\n)\n-- Continúa aquí",
+      "examples": [
+        {
+          "output": "transaction_id | amount  | is_anomaly | anomaly_type        | std_from_mean\n4              | 5000.00 | 1          | statistical_outlier | 4.2\n7              | 8500.00 | 1          | high_value + hours  | 5.8",
+          "explanation": "Las transacciones con amounts muy altos o fuera de horario son marcadas como anómalas. std_from_mean indica cuántas desviaciones estándar está del promedio."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Estadísticas Base:</strong><br>Primero calcula AVG y STDDEV por transaction_type en un CTE.<br><br>Luego calcula cuántas desviaciones del promedio está cada transacción:<br><code>(amount - avg_amount) / std_amount as std_from_mean</code>",
+        "<strong>Pista 2 - Extraer Hora:</strong><br>Usa funciones de fecha para extraer la hora:<br><code>CAST(strftime('%H', transaction_time) AS INTEGER) as hour</code><br><br>Detecta si está fuera de horario:<br><code>CASE WHEN hour < 8 OR hour >= 18 THEN 1 ELSE 0 END</code>",
+        "<strong>Pista 3 - Combinar Condiciones:</strong><br>Una transacción es anómala si:<br>- <code>ABS(std_from_mean) > 3</code> O<br>- Está fuera de horario<br><br>Usa CASE para clasificar el tipo de anomalía:<br><code>CASE<br>  WHEN ... THEN 'statistical_outlier'<br>  WHEN ... THEN 'off_hours'<br>  ELSE 'normal'<br>END</code>"
+      ],
       "testCases": [
         {
           "description": "Debe detectar anomalías correctamente",
@@ -44,6 +67,18 @@
       "dataset": "raw_customer_data.csv",
       "instructions": "Implementa un pipeline que:\n1. Elimine duplicados basados en email y phone\n2. Normalice números de teléfono al formato +XX-XXX-XXX-XXXX\n3. Valide y corriga emails\n4. Impute valores faltantes en columna 'age' con la mediana por segmento\n5. Cree columna 'customer_segment' basada en reglas de negocio\n\nRetorna un DataFrame limpio y un reporte de cambios.",
       "starterCode": "import pandas as pd\nimport numpy as np\nimport re\n\ndef clean_customer_data(df):\n    \"\"\"\n    Limpia el dataset de clientes\n    \n    Args:\n        df: DataFrame con datos crudos\n    \n    Returns:\n        tuple: (cleaned_df, report_dict)\n    \"\"\"\n    # Tu código aquí\n    pass\n\n# No modificar - código de prueba\ndf = pd.read_csv('raw_customer_data.csv')\ncleaned_df, report = clean_customer_data(df)\nprint(report)",
+      "examples": [
+        {
+          "input": "# DataFrame de entrada (con problemas)\ndf = pd.DataFrame({\n    'email': ['user@example.com', 'user@example.com', 'invalid-email'],\n    'phone': ['5551234567', '555-123-4567', '(555) 123-4567'],\n    'age': [25, 25, np.nan]\n})",
+          "output": "# DataFrame limpio\n  email              phone                age  customer_segment\n  user@example.com   +01-555-123-4567    25   standard\n  invalid@fixed.com  +01-555-123-4567    30   standard\n\n# Reporte\n{\n  'duplicates_removed': 1,\n  'phones_normalized': 3,\n  'emails_fixed': 1,\n  'age_imputed': 1\n}",
+          "explanation": "El pipeline elimina duplicados, normaliza formatos y reporta todas las transformaciones realizadas."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Eliminar Duplicados:</strong><br>Usa <code>df.drop_duplicates(subset=['email', 'phone'])</code><br><br>Guarda el conteo antes y después:<br><code>before = len(df)<br>df_clean = df.drop_duplicates(...)<br>removed = before - len(df_clean)</code>",
+        "<strong>Pista 2 - Normalizar Teléfonos:</strong><br>Usa regex para extraer solo dígitos:<br><code>phone_digits = re.sub(r'\\D', '', phone_str)</code><br><br>Luego formatea:<br><code>f'+01-{digits[0:3]}-{digits[3:6]}-{digits[6:10]}'</code><br><br>Aplica con: <code>df['phone'].apply(normalize_phone)</code>",
+        "<strong>Pista 3 - Imputar Valores:</strong><br>Calcula mediana por grupo:<br><code>median_age = df.groupby('segment')['age'].transform('median')</code><br><br>Rellena NaN:<br><code>df['age'] = df['age'].fillna(median_age)</code>"
+      ],
       "testCases": [
         {
           "description": "Debe eliminar duplicados correctamente",
@@ -66,6 +101,18 @@
       "dataset": "api_logs.csv",
       "instructions": "Crea un decorador de caching que:\n1. Implemente LRU cache con TTL (Time To Live)\n2. Soporte serialización de diferentes tipos (pandas, numpy, dict)\n3. Incluya métricas: hit rate, miss rate, evictions\n4. Permita invalidación selectiva por pattern\n5. Sea thread-safe\n\nBonus: Implementa compresión para objetos grandes (>1MB).",
       "starterCode": "from functools import wraps\nfrom threading import Lock\nimport time\nimport pickle\nimport hashlib\n\nclass SmartCache:\n    def __init__(self, max_size=128, ttl=300):\n        \"\"\"\n        Args:\n            max_size: Máximo número de items en cache\n            ttl: Time to live en segundos\n        \"\"\"\n        # Tu implementación aquí\n        pass\n    \n    def cache(self, func):\n        \"\"\"Decorador de caching\"\"\"\n        # Tu implementación aquí\n        pass\n    \n    def get_metrics(self):\n        \"\"\"Retorna métricas de cache\"\"\"\n        # Tu implementación aquí\n        pass\n\n# Ejemplo de uso\ncache = SmartCache(max_size=100, ttl=60)\n\n@cache.cache\ndef expensive_query(customer_id, date_range):\n    # Simulación de query costosa\n    time.sleep(2)\n    return {\"data\": f\"Results for {customer_id}\"}\n\n# Test\nresult1 = expensive_query(123, \"2024-01\")\nresult2 = expensive_query(123, \"2024-01\")  # Debe venir de cache\nprint(cache.get_metrics())",
+      "examples": [
+        {
+          "input": "# Primera llamada (cache miss)\nresult1 = expensive_query(123, '2024-01')  # Tarda 2s\n\n# Segunda llamada (cache hit)\nresult2 = expensive_query(123, '2024-01')  # Instantáneo",
+          "output": "# Métricas después de 2 llamadas\n{\n  'hits': 1,\n  'misses': 1,\n  'hit_rate': 0.5,\n  'evictions': 0,\n  'size': 1\n}",
+          "explanation": "El cache guarda el resultado de la primera llamada. La segunda llamada con los mismos argumentos retorna inmediatamente desde el cache."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Estructura del Cache:</strong><br>Usa un diccionario para almacenar:<br><code>self.cache = {}  # key: hash, value: (result, timestamp)</code><br><br>Genera keys únicos con:<br><code>key = hashlib.md5(pickle.dumps((args, kwargs))).hexdigest()</code>",
+        "<strong>Pista 2 - TTL (Time To Live):</strong><br>Al guardar, incluye timestamp:<br><code>self.cache[key] = (result, time.time())</code><br><br>Al leer, verifica si expiró:<br><code>if time.time() - timestamp > self.ttl:<br>    del self.cache[key]  # Expirado</code>",
+        "<strong>Pista 3 - LRU y Métricas:</strong><br>Usa <code>OrderedDict</code> para orden de acceso:<br><code>from collections import OrderedDict<br>self.cache = OrderedDict()</code><br><br>Cuando cache lleno:<br><code>if len(self.cache) >= self.max_size:<br>    self.cache.popitem(last=False)  # Remueve el más viejo</code><br><br>Tracking de métricas:<br><code>self.hits += 1  # En cache hit<br>self.misses += 1  # En cache miss</code>"
+      ],
       "testCases": [
         {
           "description": "Cache debe funcionar correctamente",

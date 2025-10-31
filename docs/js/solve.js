@@ -6,6 +6,8 @@ let startTime = null;
 let timerInterval = null;
 let pyodideInstance = null;
 let sqlDb = null;
+let currentHintIndex = 0;
+let hintsUsed = 0;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -60,7 +62,45 @@ function displayExercise() {
     document.getElementById('problem-instructions').textContent = currentExercise.instructions;
     document.getElementById('dataset-name').textContent = currentExercise.dataset;
 
+    // Display examples if available
+    if (currentExercise.examples && currentExercise.examples.length > 0) {
+        displayExamples();
+    }
+
+    // Update hints counter
+    const totalHints = currentExercise.hints ? currentExercise.hints.length : 0;
+    document.getElementById('hints-remaining').textContent = totalHints;
+    document.getElementById('hints-remaining-modal').textContent = totalHints - 1;
+
     displayTestCases();
+}
+
+// Display examples
+function displayExamples() {
+    const examplesSection = document.getElementById('examples-section');
+    const examplesContent = document.getElementById('examples-content');
+
+    examplesSection.style.display = 'block';
+    examplesContent.innerHTML = currentExercise.examples.map((example, index) => `
+        <div class="example-item">
+            <span class="example-label">Ejemplo ${index + 1}:</span>
+            ${example.input ? `
+                <div>
+                    <strong>Input:</strong>
+                    <pre class="example-code">${example.input}</pre>
+                </div>
+            ` : ''}
+            <div>
+                <strong>Output esperado:</strong>
+                <pre class="example-output">${example.output}</pre>
+            </div>
+            ${example.explanation ? `
+                <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    <em>${example.explanation}</em>
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
 }
 
 // Display test cases
@@ -419,9 +459,167 @@ function resetCode() {
     }
 }
 
-// View dataset
-function viewDataset() {
-    alert(`Dataset: ${currentExercise.dataset}\n\nEn la versión completa, aquí podrás ver una preview del dataset.`);
+// View dataset - full implementation
+async function viewDataset() {
+    const modal = document.getElementById('dataset-modal');
+    const content = document.getElementById('dataset-content');
+
+    document.getElementById('dataset-modal-name').textContent = currentExercise.dataset;
+
+    try {
+        // Load dataset based on category
+        let data;
+        if (currentExercise.category === 'sql') {
+            // Get data from SQL database
+            if (!sqlDb) {
+                await initSQL();
+            }
+            data = await getDatasetFromSQL();
+        } else {
+            // Load CSV file
+            data = await loadDatasetCSV(currentExercise.dataset);
+        }
+
+        // Display dataset as table
+        content.innerHTML = generateDatasetTable(data);
+
+        // Update stats
+        document.getElementById('dataset-rows').textContent = data.rows.length;
+        document.getElementById('dataset-cols').textContent = data.columns.length;
+
+        modal.style.display = 'flex';
+    } catch (error) {
+        console.error('Error loading dataset:', error);
+        content.innerHTML = '<p style="color: var(--danger-color); padding: 1rem;">Error al cargar el dataset</p>';
+        modal.style.display = 'flex';
+    }
+}
+
+// Get dataset from SQL database
+async function getDatasetFromSQL() {
+    const tables = sqlDb.exec("SELECT name FROM sqlite_master WHERE type='table'");
+
+    if (tables.length === 0 || tables[0].values.length === 0) {
+        throw new Error('No tables found');
+    }
+
+    const tableName = tables[0].values[0][0];
+    const result = sqlDb.exec(`SELECT * FROM ${tableName} LIMIT 100`);
+
+    if (result.length === 0) {
+        return { columns: [], rows: [] };
+    }
+
+    return {
+        columns: result[0].columns,
+        rows: result[0].values
+    };
+}
+
+// Load dataset from CSV
+async function loadDatasetCSV(filename) {
+    try {
+        const response = await fetch(`datasets/${filename}`);
+        const text = await response.text();
+
+        const lines = text.trim().split('\n');
+        const headers = lines[0].split(',');
+        const rows = lines.slice(1).map(line => {
+            // Simple CSV parsing (doesn't handle quoted commas)
+            return line.split(',');
+        });
+
+        return {
+            columns: headers,
+            rows: rows
+        };
+    } catch (error) {
+        throw new Error(`Could not load ${filename}`);
+    }
+}
+
+// Generate dataset table HTML
+function generateDatasetTable(data) {
+    if (!data.rows || data.rows.length === 0) {
+        return '<p style="padding: 1rem; color: var(--text-secondary);">No hay datos disponibles</p>';
+    }
+
+    return `
+        <table>
+            <thead>
+                <tr>
+                    ${data.columns.map(col => `<th>${col}</th>`).join('')}
+                </tr>
+            </thead>
+            <tbody>
+                ${data.rows.map(row => `
+                    <tr>
+                        ${row.map(cell => `<td>${cell}</td>`).join('')}
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+// Close dataset modal
+function closeDatasetModal() {
+    document.getElementById('dataset-modal').style.display = 'none';
+}
+
+// Download dataset as CSV
+function downloadDataset() {
+    // Create a link to the dataset file
+    const link = document.createElement('a');
+    link.href = `datasets/${currentExercise.dataset}`;
+    link.download = currentExercise.dataset;
+    link.click();
+}
+
+// Show hint
+function showHint() {
+    if (!currentExercise.hints || currentExercise.hints.length === 0) {
+        alert('No hay pistas disponibles para este ejercicio');
+        return;
+    }
+
+    if (currentHintIndex >= currentExercise.hints.length) {
+        alert('Ya has usado todas las pistas disponibles');
+        return;
+    }
+
+    const modal = document.getElementById('hint-modal');
+    const content = document.getElementById('hint-content');
+    const hintNumber = document.getElementById('current-hint-number');
+
+    // Get current hint
+    const hint = currentExercise.hints[currentHintIndex];
+
+    // Update modal content
+    hintNumber.textContent = `${currentHintIndex + 1}/${currentExercise.hints.length}`;
+    content.innerHTML = hint;
+
+    // Update counters
+    currentHintIndex++;
+    hintsUsed++;
+
+    const remaining = currentExercise.hints.length - currentHintIndex;
+    document.getElementById('hints-remaining').textContent = remaining;
+    document.getElementById('hints-remaining-modal').textContent = remaining;
+
+    // Disable hint button if no more hints
+    if (remaining === 0) {
+        document.getElementById('hint-button').disabled = true;
+        document.getElementById('hint-button').textContent = '💡 No hay más pistas disponibles';
+        document.getElementById('next-hint-btn').style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
+}
+
+// Close hint modal
+function closeHintModal() {
+    document.getElementById('hint-modal').style.display = 'none';
 }
 
 // Modal functions

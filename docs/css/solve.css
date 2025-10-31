@@ -340,6 +340,210 @@
     color: var(--text-secondary);
 }
 
+/* Examples Section */
+.examples-section {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-left: 4px solid var(--primary-color);
+}
+
+.examples-section h3 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.example-item {
+    background: white;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.example-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.example-code {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    margin-bottom: 0.5rem;
+}
+
+.example-output {
+    background: #f1f5f9;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    border-left: 3px solid var(--success-color);
+}
+
+/* Help Section */
+.help-section {
+    margin-top: 1.5rem;
+}
+
+.btn-hint {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.btn-hint:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
+}
+
+.btn-hint:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Hint Modal */
+.hint-modal {
+    max-width: 600px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: #f1f5f9;
+    color: var(--text-primary);
+}
+
+.hint-content {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+    color: #78350f;
+}
+
+.hint-content code {
+    background: #fde68a;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.hint-content strong {
+    color: #92400e;
+}
+
+/* Dataset Modal */
+.dataset-modal {
+    max-width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.dataset-info-text {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f1f5f9;
+    border-radius: 6px;
+}
+
+.dataset-info-text p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.dataset-content {
+    overflow: auto;
+    max-height: 60vh;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+}
+
+.dataset-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.dataset-content thead {
+    position: sticky;
+    top: 0;
+    background: var(--primary-color);
+    color: white;
+    z-index: 10;
+}
+
+.dataset-content th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+.dataset-content td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dataset-content tbody tr:hover {
+    background: #f8fafc;
+}
+
+.dataset-content tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .solve-container {
@@ -353,6 +557,14 @@
 
     .output-section {
         height: 200px;
+    }
+
+    .dataset-modal {
+        max-width: 95%;
+    }
+
+    .hint-modal {
+        max-width: 95%;
     }
 }
 
@@ -368,5 +580,10 @@
     .timer-display {
         margin-left: 0;
         width: 100%;
+    }
+
+    .example-code,
+    .example-output {
+        font-size: 0.8rem;
     }
 }
