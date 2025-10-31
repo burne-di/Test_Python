@@ -340,6 +340,129 @@
     color: var(--text-secondary);
 }
 
+/* Knowledge Section */
+.knowledge-section {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-left: 4px solid #3b82f6;
+}
+
+.knowledge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.knowledge-header h3 {
+    margin: 0;
+    color: #1e40af;
+}
+
+.btn-toggle-knowledge {
+    padding: 0.5rem 1rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-toggle-knowledge:hover {
+    background: #2563eb;
+}
+
+.knowledge-content {
+    margin-top: 1rem;
+}
+
+.knowledge-item {
+    background: white;
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #dbeafe;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+}
+
+.knowledge-item h4 {
+    color: #1e40af;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.knowledge-item h4::before {
+    content: '→';
+    color: #3b82f6;
+    font-weight: bold;
+}
+
+.knowledge-description {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.knowledge-example {
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 0.75rem 0;
+}
+
+.knowledge-example-label {
+    font-weight: 600;
+    color: #1e40af;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    display: block;
+}
+
+.knowledge-code {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+    line-height: 1.6;
+}
+
+.knowledge-output {
+    background: #dcfce7;
+    color: #166534;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    border-left: 3px solid #16a34a;
+    margin: 0.5rem 0;
+}
+
+.knowledge-note {
+    background: #fef9c3;
+    border-left: 3px solid #eab308;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: #713f12;
+}
+
+.knowledge-note strong {
+    color: #854d0e;
+}
+
 /* Examples Section */
 .examples-section {
     background: #f8fafc;

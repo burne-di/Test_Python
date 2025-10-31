@@ -62,6 +62,11 @@ function displayExercise() {
     document.getElementById('problem-instructions').textContent = currentExercise.instructions;
     document.getElementById('dataset-name').textContent = currentExercise.dataset;
 
+    // Display knowledge if available
+    if (currentExercise.knowledge && currentExercise.knowledge.length > 0) {
+        displayKnowledge();
+    }
+
     // Display examples if available
     if (currentExercise.examples && currentExercise.examples.length > 0) {
         displayExamples();
@@ -73,6 +78,59 @@ function displayExercise() {
     document.getElementById('hints-remaining-modal').textContent = totalHints - 1;
 
     displayTestCases();
+}
+
+// Display knowledge
+function displayKnowledge() {
+    const knowledgeSection = document.getElementById('knowledge-section');
+    const knowledgeContent = document.getElementById('knowledge-content');
+
+    knowledgeSection.style.display = 'block';
+
+    knowledgeContent.innerHTML = currentExercise.knowledge.map((item, index) => `
+        <div class="knowledge-item">
+            <h4>${item.concept}</h4>
+            <div class="knowledge-description">${item.description}</div>
+
+            ${item.syntax ? `
+                <div class="knowledge-example">
+                    <span class="knowledge-example-label">Sintaxis:</span>
+                    <pre class="knowledge-code">${item.syntax}</pre>
+                </div>
+            ` : ''}
+
+            ${item.example ? `
+                <div class="knowledge-example">
+                    <span class="knowledge-example-label">Ejemplo:</span>
+                    <pre class="knowledge-code">${item.example}</pre>
+                    ${item.output ? `
+                        <span class="knowledge-example-label">Output:</span>
+                        <pre class="knowledge-output">${item.output}</pre>
+                    ` : ''}
+                </div>
+            ` : ''}
+
+            ${item.note ? `
+                <div class="knowledge-note">
+                    <strong>💡 Nota:</strong> ${item.note}
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+}
+
+// Toggle knowledge visibility
+function toggleKnowledge() {
+    const content = document.getElementById('knowledge-content');
+    const button = document.getElementById('toggle-knowledge-btn');
+
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        button.textContent = 'Ocultar Conceptos ▲';
+    } else {
+        content.style.display = 'none';
+        button.textContent = 'Mostrar Conceptos ▼';
+    }
 }
 
 // Display examples

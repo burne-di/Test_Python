@@ -67,6 +67,48 @@
       "dataset": "raw_customer_data.csv",
       "instructions": "Implementa un pipeline que:\n1. Elimine duplicados basados en email y phone\n2. Normalice números de teléfono al formato +XX-XXX-XXX-XXXX\n3. Valide y corriga emails\n4. Impute valores faltantes en columna 'age' con la mediana por segmento\n5. Cree columna 'customer_segment' basada en reglas de negocio\n\nRetorna un DataFrame limpio y un reporte de cambios.",
       "starterCode": "import pandas as pd\nimport numpy as np\nimport re\n\ndef clean_customer_data(df):\n    \"\"\"\n    Limpia el dataset de clientes\n    \n    Args:\n        df: DataFrame con datos crudos\n    \n    Returns:\n        tuple: (cleaned_df, report_dict)\n    \"\"\"\n    # Tu código aquí\n    pass\n\n# No modificar - código de prueba\ndf = pd.read_csv('raw_customer_data.csv')\ncleaned_df, report = clean_customer_data(df)\nprint(report)",
+      "knowledge": [
+        {
+          "concept": "Pandas drop_duplicates()",
+          "description": "Elimina filas duplicadas de un DataFrame basándose en una o más columnas. Es fundamental para limpiar datos y evitar registros redundantes.",
+          "syntax": "df.drop_duplicates(subset=['columna1', 'columna2'], keep='first')",
+          "example": "import pandas as pd\n\ndf = pd.DataFrame({\n    'email': ['user@test.com', 'user@test.com', 'other@test.com'],\n    'name': ['John', 'John', 'Jane']\n})\n\n# Eliminar duplicados basados en email\ndf_clean = df.drop_duplicates(subset=['email'])\nprint(df_clean)",
+          "output": "           email  name\n0  user@test.com  John\n2  other@test.com  Jane",
+          "note": "keep='first' mantiene la primera ocurrencia, keep='last' mantiene la última, keep=False elimina todas las ocurrencias duplicadas."
+        },
+        {
+          "concept": "Expresiones Regulares (Regex) con re.sub()",
+          "description": "Las regex permiten buscar y reemplazar patrones de texto. Son esenciales para normalizar datos como teléfonos, emails, etc.",
+          "syntax": "re.sub(pattern, replacement, text)",
+          "example": "import re\n\n# Extraer solo dígitos de un teléfono\nphone = '(555) 123-4567'\ndigits = re.sub(r'\\D', '', phone)  # \\D = no-dígitos\nprint(digits)\n\n# Formatear teléfono\nformatted = f'+01-{digits[0:3]}-{digits[3:6]}-{digits[6:10]}'\nprint(formatted)",
+          "output": "5551234567\n+01-555-123-4567",
+          "note": "\\D elimina todo lo que NO sea dígito. \\d busca dígitos. . busca cualquier carácter."
+        },
+        {
+          "concept": "DataFrame.apply() - Transformaciones por Fila/Columna",
+          "description": "Aplica una función a cada fila o columna del DataFrame. Permite transformaciones custom que no existen como métodos built-in.",
+          "syntax": "df['columna'].apply(mi_funcion)\n# o\ndf.apply(mi_funcion, axis=1)  # axis=1 para filas",
+          "example": "import pandas as pd\n\ndf = pd.DataFrame({'phone': ['5551234567', '555-234-5678']})\n\ndef normalize_phone(phone):\n    digits = ''.join(filter(str.isdigit, phone))\n    return f'+01-{digits[0:3]}-{digits[3:6]}-{digits[6:10]}'\n\ndf['phone_clean'] = df['phone'].apply(normalize_phone)\nprint(df)",
+          "output": "         phone       phone_clean\n0  5551234567  +01-555-123-4567\n1  555-234-5678  +01-555-234-5678",
+          "note": "apply() es flexible pero puede ser lento en DataFrames grandes. Considera operaciones vectorizadas cuando sea posible."
+        },
+        {
+          "concept": "fillna() y transform() - Imputación de Valores",
+          "description": "fillna() rellena valores NaN/None. transform() aplica una función que retorna un valor por grupo, útil para imputar valores por segmento.",
+          "syntax": "df['columna'].fillna(valor)\n# o con transform\ndf.groupby('grupo')['columna'].transform('median')",
+          "example": "import pandas as pd\nimport numpy as np\n\ndf = pd.DataFrame({\n    'segment': ['A', 'A', 'B', 'B'],\n    'age': [25, np.nan, 35, np.nan]\n})\n\n# Imputar con mediana del segmento\ndf['age_filled'] = df.groupby('segment')['age'].transform(lambda x: x.fillna(x.median()))\nprint(df)",
+          "output": "  segment   age  age_filled\n0       A  25.0        25.0\n1       A   NaN        25.0\n2       B  35.0        35.0\n3       B   NaN        35.0",
+          "note": "transform() mantiene el tamaño original del DataFrame, mientras que aggregate() reduce el tamaño."
+        },
+        {
+          "concept": "Diccionarios - Retornar Múltiples Valores",
+          "description": "Los diccionarios (dict) permiten retornar múltiples valores nombrados desde una función. Son más legibles que tuplas.",
+          "syntax": "def mi_funcion():\n    return {'key1': value1, 'key2': value2}",
+          "example": "def clean_data(df):\n    original_rows = len(df)\n    df_clean = df.drop_duplicates()\n    cleaned_rows = len(df_clean)\n    \n    report = {\n        'original_rows': original_rows,\n        'cleaned_rows': cleaned_rows,\n        'removed': original_rows - cleaned_rows\n    }\n    \n    return df_clean, report\n\n# Uso\ndf_result, report = clean_data(my_df)\nprint(f\"Eliminadas: {report['removed']} filas\")",
+          "output": "Eliminadas: 5 filas",
+          "note": "Retornar diccionarios hace el código más mantenible que retornar tuplas con índices numéricos."
+        }
+      ],
       "examples": [
         {
           "input": "# DataFrame de entrada (con problemas)\ndf = pd.DataFrame({\n    'email': ['user@example.com', 'user@example.com', 'invalid-email'],\n    'phone': ['5551234567', '555-123-4567', '(555) 123-4567'],\n    'age': [25, 25, np.nan]\n})",
