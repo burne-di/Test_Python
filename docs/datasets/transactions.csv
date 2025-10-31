@@ -1,0 +1,11 @@
+transaction_id,user_id,transaction_type,amount,transaction_time,status
+1,1001,purchase,100.50,2024-01-15 14:30:00,completed
+2,1002,purchase,250.75,2024-01-15 15:45:00,completed
+3,1003,refund,50.00,2024-01-15 16:20:00,completed
+4,1004,purchase,5000.00,2024-01-15 22:10:00,completed
+5,1005,purchase,150.25,2024-01-16 09:30:00,completed
+6,1001,purchase,75.50,2024-01-16 10:15:00,completed
+7,1006,purchase,8500.00,2024-01-16 23:45:00,completed
+8,1007,purchase,200.00,2024-01-17 11:20:00,completed
+9,1008,refund,120.00,2024-01-17 14:30:00,completed
+10,1009,purchase,350.75,2024-01-17 16:45:00,completed

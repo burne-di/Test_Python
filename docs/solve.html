@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolver Ejercicio - Data Engineering Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/solve.css">
+</head>
+<body class="solve-page">
+    <header class="solve-header">
+        <div class="container">
+            <div class="header-top">
+                <button onclick="goBack()" class="back-button">← Volver</button>
+                <h1 id="exercise-title">Cargando ejercicio...</h1>
+            </div>
+            <div class="exercise-info">
+                <span id="exercise-category" class="exercise-category"></span>
+                <span id="exercise-difficulty" class="difficulty-badge"></span>
+                <span class="timer-display">
+                    ⏱️ <span id="timer">00:00</span> / <span id="time-limit">00:00</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="solve-container">
+        <div class="left-panel">
+            <div class="problem-section">
+                <h2>Descripción del Problema</h2>
+                <div id="problem-description" class="problem-content">
+                    Cargando...
+                </div>
+                <h3>Instrucciones</h3>
+                <div id="problem-instructions" class="problem-content">
+                    Cargando...
+                </div>
+                <div class="dataset-info">
+                    <h3>Dataset</h3>
+                    <p>📁 <span id="dataset-name">dataset.csv</span></p>
+                    <button onclick="viewDataset()" class="btn-secondary">Ver Dataset</button>
+                </div>
+            </div>
+
+            <div class="test-cases-section">
+                <h2>Casos de Prueba</h2>
+                <div id="test-cases-list">
+                    <!-- Test cases will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="editor-section">
+                <div class="editor-header">
+                    <h2>Editor de Código</h2>
+                    <div class="editor-controls">
+                        <button id="reset-code" class="btn-secondary" onclick="resetCode()">
+                            🔄 Reset
+                        </button>
+                        <button id="run-code" class="btn-primary" onclick="runCode()">
+                            ▶️ Ejecutar
+                        </button>
+                    </div>
+                </div>
+                <div id="code-editor" class="code-editor-container"></div>
+            </div>
+
+            <div class="output-section">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('output')">Salida</button>
+                    <button class="tab" onclick="switchTab('console')">Consola</button>
+                    <button class="tab" onclick="switchTab('results')">Resultados</button>
+                </div>
+                <div id="output-content" class="output-content">
+                    <div class="placeholder">
+                        Ejecuta tu código para ver los resultados aquí
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="loader"></div>
+            <p>Ejecutando código...</p>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="results-modal" class="modal" style="display: none;">
+        <div class="modal-content results-modal">
+            <h2 id="results-title">Resultados</h2>
+            <div id="results-content"></div>
+            <div class="modal-actions">
+                <button onclick="closeResultsModal()" class="btn-primary">Cerrar</button>
+                <button onclick="goBack()" class="btn-secondary">Volver al Inicio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monaco Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script src="js/solve.js"></script>
+</body>
+</html>

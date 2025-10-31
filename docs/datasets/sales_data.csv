@@ -1,0 +1,11 @@
+product_id,product_name,category,total_sales,units_sold,sale_date
+1,Laptop Dell XPS,Electronics,150000.00,15,2024-01-15
+2,Wireless Mouse,Accessories,25000.00,250,2024-01-16
+3,Mechanical Keyboard,Accessories,35000.00,100,2024-01-17
+4,4K Monitor,Electronics,120000.00,30,2024-01-18
+5,Noise-Canceling Headphones,Accessories,45000.00,90,2024-01-19
+6,USB-C Hub,Accessories,18000.00,120,2024-01-20
+7,External SSD 1TB,Storage,75000.00,50,2024-01-21
+8,Webcam HD,Electronics,32000.00,80,2024-01-22
+9,Desk Lamp LED,Furniture,12000.00,150,2024-01-23
+10,Office Chair,Furniture,95000.00,20,2024-01-24

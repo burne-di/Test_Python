@@ -1,0 +1,11 @@
+# GitHub Pages Configuration
+# Data Engineering Practice Hub
+
+title: Data Engineering Practice Hub
+description: Plataforma de preparación para pruebas técnicas de Data Engineering - SQL, Python y PySpark
+
+# Theme
+theme: null
+
+# Build settings
+markdown: kramdown

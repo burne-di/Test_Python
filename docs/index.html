@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Engineering Practice Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🎯 Data Engineering Practice Hub</h1>
+            <p>Prepárate para pruebas técnicas de Data Engineering - Nivel SSR a Senior</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="intro-section">
+            <h2>Bienvenido</h2>
+            <p>Plataforma de práctica para evaluar tus habilidades en SQL, Python y PySpark con ejercicios de nivel profesional.</p>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>SQL</h3>
+                    <p class="stat-number" id="sql-count">0</p>
+                    <p>Ejercicios</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Python</h3>
+                    <p class="stat-number" id="python-count">0</p>
+                    <p>Ejercicios</p>
+                </div>
+                <div class="stat-card">
+                    <h3>PySpark</h3>
+                    <p class="stat-number" id="pyspark-count">0</p>
+                    <p>Ejercicios</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="filters-section">
+            <h2>Filtrar Ejercicios</h2>
+            <div class="filters">
+                <select id="category-filter">
+                    <option value="all">Todas las categorías</option>
+                    <option value="sql">SQL</option>
+                    <option value="python">Python</option>
+                    <option value="pyspark">PySpark</option>
+                </select>
+
+                <select id="difficulty-filter">
+                    <option value="all">Todas las dificultades</option>
+                    <option value="ssr">SSR (Semi-Senior)</option>
+                    <option value="senior">Senior</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="exercises-section">
+            <h2>Ejercicios Disponibles</h2>
+            <div id="exercises-container" class="exercises-grid">
+                <!-- Ejercicios se cargarán dinámicamente -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Data Engineering Practice Hub - Desarrollado para preparación técnica</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

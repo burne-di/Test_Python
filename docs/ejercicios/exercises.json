@@ -1,0 +1,163 @@
+{
+  "exercises": [
+    {
+      "id": "sql_001",
+      "title": "Análisis de Ventas con Window Functions",
+      "category": "sql",
+      "difficulty": "ssr",
+      "description": "Calcula el ranking de ventas por producto y el porcentaje acumulado usando funciones de ventana.",
+      "timeLimit": 30,
+      "dataset": "sales_data.csv",
+      "instructions": "Dado el dataset de ventas, calcula:\n1. Ranking de cada producto por total de ventas (descendente)\n2. Porcentaje de ventas acumulado\n3. Diferencia con el producto anterior en el ranking",
+      "starterCode": "-- Escribe tu query aquí\nSELECT \n  product_id,\n  product_name,\n  total_sales\nFROM sales\n-- Completa la query",
+      "testCases": [
+        {
+          "description": "Debe incluir ranking correcto",
+          "expectedColumns": ["product_id", "product_name", "total_sales", "rank", "cumulative_pct", "diff_prev"]
+        }
+      ]
+    },
+    {
+      "id": "sql_002",
+      "title": "Detección de Anomalías en Transacciones",
+      "category": "sql",
+      "difficulty": "senior",
+      "description": "Identifica transacciones anómalas usando desviación estándar y percentiles.",
+      "timeLimit": 45,
+      "dataset": "transactions.csv",
+      "instructions": "Identifica transacciones que:\n1. Superen 3 desviaciones estándar de la media\n2. Estén en el percentil 99\n3. Ocurran fuera del horario normal (8am-6pm)\nAgrupa por tipo de transacción y calcula métricas de anomalías.",
+      "starterCode": "-- Escribe tu query aquí\nWITH stats AS (\n  SELECT \n    transaction_type,\n    AVG(amount) as avg_amount,\n    STDDEV(amount) as std_amount\n  FROM transactions\n  GROUP BY transaction_type\n)\n-- Continúa aquí",
+      "testCases": [
+        {
+          "description": "Debe detectar anomalías correctamente",
+          "expectedColumns": ["transaction_id", "amount", "is_anomaly", "anomaly_type", "std_deviation_from_mean"]
+        }
+      ]
+    },
+    {
+      "id": "python_001",
+      "title": "Pipeline de Limpieza de Datos",
+      "category": "python",
+      "difficulty": "ssr",
+      "description": "Crea un pipeline robusto de limpieza de datos usando Pandas.",
+      "timeLimit": 30,
+      "dataset": "raw_customer_data.csv",
+      "instructions": "Implementa un pipeline que:\n1. Elimine duplicados basados en email y phone\n2. Normalice números de teléfono al formato +XX-XXX-XXX-XXXX\n3. Valide y corriga emails\n4. Impute valores faltantes en columna 'age' con la mediana por segmento\n5. Cree columna 'customer_segment' basada en reglas de negocio\n\nRetorna un DataFrame limpio y un reporte de cambios.",
+      "starterCode": "import pandas as pd\nimport numpy as np\nimport re\n\ndef clean_customer_data(df):\n    \"\"\"\n    Limpia el dataset de clientes\n    \n    Args:\n        df: DataFrame con datos crudos\n    \n    Returns:\n        tuple: (cleaned_df, report_dict)\n    \"\"\"\n    # Tu código aquí\n    pass\n\n# No modificar - código de prueba\ndf = pd.read_csv('raw_customer_data.csv')\ncleaned_df, report = clean_customer_data(df)\nprint(report)",
+      "testCases": [
+        {
+          "description": "Debe eliminar duplicados correctamente",
+          "input": "df_with_duplicates.csv",
+          "expectedOutput": {"duplicates_removed": 150}
+        },
+        {
+          "description": "Debe normalizar teléfonos",
+          "assertion": "all(cleaned_df['phone'].str.match(r'\\+\\d{2}-\\d{3}-\\d{3}-\\d{4}'))"
+        }
+      ]
+    },
+    {
+      "id": "python_002",
+      "title": "Optimización de Consultas con Caching",
+      "category": "python",
+      "difficulty": "senior",
+      "description": "Implementa un sistema de caching inteligente con decoradores y TTL.",
+      "timeLimit": 45,
+      "dataset": "api_logs.csv",
+      "instructions": "Crea un decorador de caching que:\n1. Implemente LRU cache con TTL (Time To Live)\n2. Soporte serialización de diferentes tipos (pandas, numpy, dict)\n3. Incluya métricas: hit rate, miss rate, evictions\n4. Permita invalidación selectiva por pattern\n5. Sea thread-safe\n\nBonus: Implementa compresión para objetos grandes (>1MB).",
+      "starterCode": "from functools import wraps\nfrom threading import Lock\nimport time\nimport pickle\nimport hashlib\n\nclass SmartCache:\n    def __init__(self, max_size=128, ttl=300):\n        \"\"\"\n        Args:\n            max_size: Máximo número de items en cache\n            ttl: Time to live en segundos\n        \"\"\"\n        # Tu implementación aquí\n        pass\n    \n    def cache(self, func):\n        \"\"\"Decorador de caching\"\"\"\n        # Tu implementación aquí\n        pass\n    \n    def get_metrics(self):\n        \"\"\"Retorna métricas de cache\"\"\"\n        # Tu implementación aquí\n        pass\n\n# Ejemplo de uso\ncache = SmartCache(max_size=100, ttl=60)\n\n@cache.cache\ndef expensive_query(customer_id, date_range):\n    # Simulación de query costosa\n    time.sleep(2)\n    return {\"data\": f\"Results for {customer_id}\"}\n\n# Test\nresult1 = expensive_query(123, \"2024-01\")\nresult2 = expensive_query(123, \"2024-01\")  # Debe venir de cache\nprint(cache.get_metrics())",
+      "testCases": [
+        {
+          "description": "Cache debe funcionar correctamente",
+          "assertion": "metrics['hit_rate'] > 0.5"
+        },
+        {
+          "description": "TTL debe expirar correctamente",
+          "assertion": "expired_items == 0 after TTL"
+        }
+      ]
+    },
+    {
+      "id": "pyspark_001",
+      "title": "Procesamiento Distribuido de Logs",
+      "category": "pyspark",
+      "difficulty": "ssr",
+      "description": "Procesa logs de servidor usando PySpark para identificar patrones de uso.",
+      "timeLimit": 40,
+      "dataset": "server_logs.parquet",
+      "colabNotebook": "https://colab.research.google.com/drive/NOTEBOOK_ID_001",
+      "instructions": "Usando PySpark:\n1. Lee logs en formato Parquet (100M registros)\n2. Parsea timestamps y extrae features temporales (hora, día semana, etc.)\n3. Identifica top 100 IPs por número de requests\n4. Detecta patrones de actividad sospechosa (>1000 req/min)\n5. Calcula métricas de performance por endpoint\n6. Guarda resultados en formato Delta Lake\n\nOptimiza para performance: usa partitioning, caching estratégico.",
+      "starterCode": "from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import *\nfrom pyspark.sql.window import Window\n\n# Spark session ya inicializada\n# spark = SparkSession.builder.appName('LogProcessing').getOrCreate()\n\ndef process_server_logs(logs_path):\n    \"\"\"\n    Procesa logs de servidor\n    \n    Args:\n        logs_path: Path al archivo parquet\n    \n    Returns:\n        dict con DataFrames: top_ips, suspicious_activity, endpoint_metrics\n    \"\"\"\n    # Tu código aquí\n    pass",
+      "testCases": [
+        {
+          "description": "Debe identificar top IPs correctamente",
+          "expectedSchema": "ip_address STRING, request_count LONG, total_bytes LONG"
+        },
+        {
+          "description": "Performance: debe procesar en <2min",
+          "maxExecutionTime": 120
+        }
+      ]
+    },
+    {
+      "id": "pyspark_002",
+      "title": "ETL Incremental con Change Data Capture",
+      "category": "pyspark",
+      "difficulty": "senior",
+      "description": "Implementa un pipeline ETL incremental usando Delta Lake y CDC.",
+      "timeLimit": 60,
+      "dataset": "source_db_changes.delta",
+      "colabNotebook": "https://colab.research.google.com/drive/NOTEBOOK_ID_002",
+      "instructions": "Implementa ETL incremental que:\n1. Detecte cambios (INSERT, UPDATE, DELETE) desde última ejecución\n2. Aplique transformaciones complejas manteniendo linaje de datos\n3. Maneje slowly changing dimensions (SCD Type 2)\n4. Implemente validación de calidad de datos\n5. Use merge para upserts eficientes\n6. Maneje late-arriving data\n\nBonus: Implementa time travel y rollback en caso de fallos.",
+      "starterCode": "from pyspark.sql import SparkSession\nfrom delta.tables import DeltaTable\nfrom pyspark.sql.functions import *\n\nclass IncrementalETL:\n    def __init__(self, spark, source_path, target_path):\n        self.spark = spark\n        self.source_path = source_path\n        self.target_path = target_path\n    \n    def get_incremental_changes(self, last_timestamp):\n        \"\"\"Obtiene cambios desde último procesamiento\"\"\"\n        # Tu código aquí\n        pass\n    \n    def apply_transformations(self, df):\n        \"\"\"Aplica transformaciones de negocio\"\"\"\n        # Tu código aquí\n        pass\n    \n    def merge_to_target(self, changes_df):\n        \"\"\"Hace merge incremental a tabla target\"\"\"\n        # Tu código aquí\n        pass\n    \n    def run(self):\n        \"\"\"Ejecuta pipeline completo\"\"\"\n        # Tu código aquí\n        pass\n\n# Uso\netl = IncrementalETL(spark, 'source/', 'target/')\netl.run()",
+      "testCases": [
+        {
+          "description": "Debe manejar SCD Type 2 correctamente",
+          "assertion": "history_preserved == True"
+        },
+        {
+          "description": "Debe ser idempotente",
+          "assertion": "run1_result == run2_result"
+        }
+      ]
+    },
+    {
+      "id": "sql_003",
+      "title": "Análisis de Cohorts de Usuarios",
+      "category": "sql",
+      "difficulty": "senior",
+      "description": "Calcula retención de usuarios por cohorte usando SQL avanzado.",
+      "timeLimit": 40,
+      "dataset": "user_activity.csv",
+      "instructions": "Crea un análisis de cohorts que:\n1. Agrupe usuarios por mes de registro (cohort)\n2. Calcule retención mensual (% usuarios activos en mes N)\n3. Calcule lifetime value promedio por cohort\n4. Identifique cohorts de mejor performance\n\nFormato output: matriz de retención pivoteada.",
+      "starterCode": "-- Cohort Analysis\nWITH user_cohorts AS (\n  SELECT \n    user_id,\n    DATE_TRUNC('month', registration_date) as cohort_month\n  FROM users\n),\nuser_activities AS (\n  -- Tu código aquí\n)\n-- Continúa...",
+      "testCases": [
+        {
+          "description": "Matriz de retención correcta",
+          "expectedColumns": ["cohort_month", "month_0", "month_1", "month_2", "month_3"]
+        }
+      ]
+    },
+    {
+      "id": "python_003",
+      "title": "Procesamiento Paralelo de Archivos",
+      "category": "python",
+      "difficulty": "ssr",
+      "description": "Procesa múltiples archivos CSV en paralelo usando multiprocessing.",
+      "timeLimit": 35,
+      "dataset": "data_files/*.csv",
+      "instructions": "Implementa procesamiento paralelo que:\n1. Procese 100 archivos CSV (10MB cada uno) en paralelo\n2. Aplique transformaciones custom por archivo\n3. Agregue resultados en un DataFrame consolidado\n4. Maneje errores gracefully (archivos corruptos)\n5. Muestre barra de progreso\n\nUsa Pool de multiprocessing, optimiza para CPU cores disponibles.",
+      "starterCode": "import pandas as pd\nfrom multiprocessing import Pool, cpu_count\nfrom pathlib import Path\nfrom tqdm import tqdm\nimport logging\n\ndef process_single_file(file_path):\n    \"\"\"\n    Procesa un archivo CSV\n    \n    Args:\n        file_path: Path al archivo\n    \n    Returns:\n        DataFrame procesado o None si error\n    \"\"\"\n    # Tu código aquí\n    pass\n\ndef parallel_process_files(files_pattern, n_workers=None):\n    \"\"\"\n    Procesa archivos en paralelo\n    \n    Args:\n        files_pattern: Pattern glob para archivos\n        n_workers: Número de workers (default: CPU cores)\n    \n    Returns:\n        DataFrame consolidado\n    \"\"\"\n    # Tu código aquí\n    pass\n\n# Test\nresult = parallel_process_files('data_files/*.csv')\nprint(f\"Procesados {len(result)} registros\")",
+      "testCases": [
+        {
+          "description": "Debe procesar todos los archivos",
+          "assertion": "len(result) == expected_total_rows"
+        },
+        {
+          "description": "Debe ser más rápido que serial",
+          "assertion": "parallel_time < serial_time * 0.5"
+        }
+      ]
+    }
+  ]
+}
