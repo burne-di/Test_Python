@@ -8,6 +8,7 @@ let pyodideInstance = null;
 let sqlDb = null;
 let currentHintIndex = 0;
 let hintsUsed = 0;
+let revealedHints = [];
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -62,56 +63,75 @@ function displayExercise() {
     document.getElementById('problem-instructions').textContent = currentExercise.instructions;
     document.getElementById('dataset-name').textContent = currentExercise.dataset;
 
-    // Display knowledge if available
+    // Show/hide tabs based on available content
     if (currentExercise.knowledge && currentExercise.knowledge.length > 0) {
+        document.getElementById('knowledge-tab-btn').style.display = 'flex';
         displayKnowledge();
     }
 
-    // Display examples if available
     if (currentExercise.examples && currentExercise.examples.length > 0) {
+        document.getElementById('examples-tab-btn').style.display = 'flex';
         displayExamples();
     }
 
     // Update hints counter
     const totalHints = currentExercise.hints ? currentExercise.hints.length : 0;
-    document.getElementById('hints-remaining').textContent = totalHints;
-    document.getElementById('hints-remaining-modal').textContent = totalHints - 1;
+    document.getElementById('hints-badge').textContent = totalHints;
+    document.getElementById('hints-remaining-display').textContent = totalHints;
 
     displayTestCases();
 }
 
-// Display knowledge
+// Switch between tabs
+function switchLeftTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
+    });
+    const activeTab = document.getElementById(`tab-${tabName}`);
+    activeTab.classList.add('active');
+    activeTab.style.display = 'block';
+}
+
+// Display knowledge (NEW CARD DESIGN)
 function displayKnowledge() {
-    const knowledgeSection = document.getElementById('knowledge-section');
     const knowledgeContent = document.getElementById('knowledge-content');
 
-    knowledgeSection.style.display = 'block';
-
     knowledgeContent.innerHTML = currentExercise.knowledge.map((item, index) => `
-        <div class="knowledge-item">
-            <h4>${item.concept}</h4>
-            <div class="knowledge-description">${item.description}</div>
+        <div class="knowledge-card">
+            <div class="knowledge-card-header">
+                <div class="knowledge-number">${index + 1}</div>
+                <h4>${item.concept}</h4>
+            </div>
+            <div class="knowledge-card-description">${item.description}</div>
 
             ${item.syntax ? `
-                <div class="knowledge-example">
-                    <span class="knowledge-example-label">Sintaxis:</span>
-                    <pre class="knowledge-code">${item.syntax}</pre>
+                <div class="knowledge-section-box">
+                    <span class="knowledge-section-label">Sintaxis</span>
+                    <pre class="knowledge-code-box">${item.syntax}</pre>
                 </div>
             ` : ''}
 
             ${item.example ? `
-                <div class="knowledge-example">
-                    <span class="knowledge-example-label">Ejemplo:</span>
-                    <pre class="knowledge-code">${item.example}</pre>
+                <div class="knowledge-section-box">
+                    <span class="knowledge-section-label">Ejemplo</span>
+                    <pre class="knowledge-code-box">${item.example}</pre>
                     ${item.output ? `
-                        <span class="knowledge-example-label">Output:</span>
-                        <pre class="knowledge-output">${item.output}</pre>
+                        <span class="knowledge-section-label" style="margin-top: 1rem;">Output</span>
+                        <pre class="knowledge-output-box">${item.output}</pre>
                     ` : ''}
                 </div>
             ` : ''}
 
             ${item.note ? `
-                <div class="knowledge-note">
+                <div class="knowledge-note-box">
                     <strong>💡 Nota:</strong> ${item.note}
                 </div>
             ` : ''}
@@ -119,46 +139,91 @@ function displayKnowledge() {
     `).join('');
 }
 
-// Toggle knowledge visibility
-function toggleKnowledge() {
-    const content = document.getElementById('knowledge-content');
-    const button = document.getElementById('toggle-knowledge-btn');
-
-    if (content.style.display === 'none') {
-        content.style.display = 'block';
-        button.textContent = 'Ocultar Conceptos ▲';
-    } else {
-        content.style.display = 'none';
-        button.textContent = 'Mostrar Conceptos ▼';
-    }
-}
-
-// Display examples
+// Display examples (NEW CARD DESIGN)
 function displayExamples() {
-    const examplesSection = document.getElementById('examples-section');
     const examplesContent = document.getElementById('examples-content');
 
-    examplesSection.style.display = 'block';
     examplesContent.innerHTML = currentExercise.examples.map((example, index) => `
-        <div class="example-item">
-            <span class="example-label">Ejemplo ${index + 1}:</span>
+        <div class="example-card">
+            <div class="example-card-header">
+                <div class="example-number">${index + 1}</div>
+                <h4>Ejemplo ${index + 1}</h4>
+            </div>
+
             ${example.input ? `
-                <div>
-                    <strong>Input:</strong>
-                    <pre class="example-code">${example.input}</pre>
+                <div class="example-input-box">
+                    <span class="example-label-text">Input</span>
+                    <pre class="example-code-text">${example.input}</pre>
                 </div>
             ` : ''}
-            <div>
-                <strong>Output esperado:</strong>
-                <pre class="example-output">${example.output}</pre>
+
+            <div class="example-input-box">
+                <span class="example-label-text">Output Esperado</span>
+                <pre class="example-output-text">${example.output}</pre>
             </div>
+
             ${example.explanation ? `
-                <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                    <em>${example.explanation}</em>
+                <div class="example-explanation">
+                    <strong>💡 Explicación:</strong> ${example.explanation}
                 </div>
             ` : ''}
         </div>
     `).join('');
+}
+
+// Reveal next hint
+function revealNextHint() {
+    if (!currentExercise.hints || currentExercise.hints.length === 0) {
+        alert('No hay pistas disponibles para este ejercicio');
+        return;
+    }
+
+    if (currentHintIndex >= currentExercise.hints.length) {
+        alert('Ya has usado todas las pistas disponibles');
+        return;
+    }
+
+    const hintsContent = document.getElementById('hints-content');
+    const revealButton = document.getElementById('reveal-hint-btn');
+
+    // Remove empty placeholder if it exists
+    const emptyPlaceholder = hintsContent.querySelector('.hints-empty');
+    if (emptyPlaceholder) {
+        emptyPlaceholder.remove();
+    }
+
+    // Add the revealed hint
+    const hintDiv = document.createElement('div');
+    hintDiv.className = 'hint-revealed';
+    hintDiv.innerHTML = `
+        <div class="hint-revealed-header">
+            <div class="hint-number-badge">${currentHintIndex + 1}</div>
+            <span class="hint-title-text">Pista ${currentHintIndex + 1} de ${currentExercise.hints.length}</span>
+        </div>
+        <div class="hint-content-text">
+            ${currentExercise.hints[currentHintIndex]}
+        </div>
+    `;
+    hintsContent.appendChild(hintDiv);
+
+    // Update counters
+    currentHintIndex++;
+    const remaining = currentExercise.hints.length - currentHintIndex;
+    document.getElementById('hints-badge').textContent = remaining;
+    document.getElementById('hints-remaining-display').textContent = remaining;
+
+    // Disable button if no more hints
+    if (remaining === 0) {
+        revealButton.disabled = true;
+        revealButton.textContent = '🔒 No hay más pistas disponibles';
+    } else {
+        revealButton.textContent = `🔓 Revelar Siguiente Pista (${remaining} restantes)`;
+    }
+
+    // Scroll to the new hint
+    setTimeout(() => {
+        hintDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
 }
 
 // Display test cases

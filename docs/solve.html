@@ -26,55 +26,106 @@
 
     <main class="solve-container">
         <div class="left-panel">
-            <div class="problem-section">
-                <h2>Descripción del Problema</h2>
-                <div id="problem-description" class="problem-content">
-                    Cargando...
-                </div>
-                <h3>Instrucciones</h3>
-                <div id="problem-instructions" class="problem-content">
-                    Cargando...
-                </div>
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="switchLeftTab('problem')" data-tab="problem">
+                    <span class="tab-icon">📋</span>
+                    <span class="tab-label">Problema</span>
+                </button>
+                <button class="tab-btn" onclick="switchLeftTab('knowledge')" data-tab="knowledge" id="knowledge-tab-btn" style="display: none;">
+                    <span class="tab-icon">📚</span>
+                    <span class="tab-label">Teoría</span>
+                </button>
+                <button class="tab-btn" onclick="switchLeftTab('examples')" data-tab="examples" id="examples-tab-btn" style="display: none;">
+                    <span class="tab-icon">📝</span>
+                    <span class="tab-label">Ejemplos</span>
+                </button>
+                <button class="tab-btn" onclick="switchLeftTab('hints')" data-tab="hints">
+                    <span class="tab-icon">💡</span>
+                    <span class="tab-label">Pistas</span>
+                    <span class="hints-badge" id="hints-badge">3</span>
+                </button>
+            </div>
 
-                <!-- Knowledge Section -->
-                <div class="knowledge-section" id="knowledge-section" style="display: none;">
-                    <div class="knowledge-header">
-                        <h3>📚 Conocimiento Teórico Requerido</h3>
-                        <button onclick="toggleKnowledge()" class="btn-toggle-knowledge" id="toggle-knowledge-btn">
-                            Mostrar Conceptos ▼
+            <!-- Tab Content -->
+            <div class="tab-content-container">
+                <!-- Problem Tab -->
+                <div class="tab-content active" id="tab-problem">
+                    <div class="content-header">
+                        <h2>📋 Descripción del Problema</h2>
+                    </div>
+                    <div id="problem-description" class="content-text">
+                        Cargando...
+                    </div>
+
+                    <div class="content-header">
+                        <h2>📖 Instrucciones</h2>
+                    </div>
+                    <div id="problem-instructions" class="content-text instructions-list">
+                        Cargando...
+                    </div>
+
+                    <div class="dataset-card">
+                        <div class="dataset-card-header">
+                            <span class="dataset-icon">📊</span>
+                            <span class="dataset-title">Dataset: <strong id="dataset-name">dataset.csv</strong></span>
+                        </div>
+                        <button onclick="viewDataset()" class="btn-dataset">
+                            <span>👁️</span> Ver Datos Completos
                         </button>
                     </div>
-                    <div id="knowledge-content" class="knowledge-content" style="display: none;">
+
+                    <div class="test-cases-compact">
+                        <h3>✓ Casos de Prueba</h3>
+                        <div id="test-cases-list">
+                            <!-- Test cases will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Knowledge Tab -->
+                <div class="tab-content" id="tab-knowledge" style="display: none;">
+                    <div class="content-header">
+                        <h2>📚 Conocimiento Teórico</h2>
+                        <p class="content-subtitle">Conceptos necesarios para resolver este ejercicio</p>
+                    </div>
+                    <div id="knowledge-content" class="knowledge-cards">
                         <!-- Knowledge will be loaded here -->
                     </div>
                 </div>
 
-                <!-- Examples Section -->
-                <div class="examples-section" id="examples-section" style="display: none;">
-                    <h3>📝 Ejemplos</h3>
-                    <div id="examples-content">
+                <!-- Examples Tab -->
+                <div class="tab-content" id="tab-examples" style="display: none;">
+                    <div class="content-header">
+                        <h2>📝 Ejemplos de Input/Output</h2>
+                        <p class="content-subtitle">Observa cómo debería funcionar tu solución</p>
+                    </div>
+                    <div id="examples-content" class="examples-cards">
                         <!-- Examples will be loaded here -->
                     </div>
                 </div>
 
-                <div class="dataset-info">
-                    <h3>Dataset</h3>
-                    <p>📁 <span id="dataset-name">dataset.csv</span></p>
-                    <button onclick="viewDataset()" class="btn-secondary">👁️ Ver Dataset</button>
-                </div>
-
-                <!-- Help Section -->
-                <div class="help-section">
-                    <button onclick="showHint()" class="btn-hint" id="hint-button">
-                        💡 Obtener Pista (<span id="hints-remaining">3</span> disponibles)
+                <!-- Hints Tab -->
+                <div class="tab-content" id="tab-hints" style="display: none;">
+                    <div class="content-header">
+                        <h2>💡 Pistas Progresivas</h2>
+                        <p class="content-subtitle">Úsalas con sabiduría - de más general a más específica</p>
+                    </div>
+                    <div class="hints-info">
+                        <div class="hints-counter">
+                            <span class="hints-available" id="hints-remaining-display">3</span>
+                            <span class="hints-label">pistas disponibles</span>
+                        </div>
+                    </div>
+                    <div id="hints-content" class="hints-list">
+                        <!-- Hints will be loaded here -->
+                        <div class="hints-empty">
+                            <p>Click el botón para revelar la primera pista</p>
+                        </div>
+                    </div>
+                    <button onclick="revealNextHint()" class="btn-reveal-hint" id="reveal-hint-btn">
+                        🔓 Revelar Siguiente Pista
                     </button>
-                </div>
-            </div>
-
-            <div class="test-cases-section">
-                <h2>Casos de Prueba</h2>
-                <div id="test-cases-list">
-                    <!-- Test cases will be loaded here -->
                 </div>
             </div>
         </div>
