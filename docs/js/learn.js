@@ -1,281 +1,123 @@
-// Learn Page - DataCamp Style Learning Experience
+// Learn Page - DataCamp Style
 
 let currentExercise = null;
-let currentStep = 1;
+let allExercises = [];
+let currentIndex = 0;
 let editor = null;
 let pyodideInstance = null;
-let startTime = null;
-let attemptCount = 0;
 let hintsRevealed = 0;
-let revealedHints = [];
 
-// Initialize page
+// Initialize
 window.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const exerciseId = urlParams.get('id');
 
-    if (!exerciseId) {
-        alert('No se especificó ejercicio');
-        window.location.href = 'index.html';
-        return;
+    await loadAllExercises();
+
+    if (exerciseId) {
+        currentIndex = allExercises.findIndex(ex => ex.id === exerciseId);
+        if (currentIndex === -1) currentIndex = 0;
     }
 
-    await loadExercise(exerciseId);
+    loadExercise(currentIndex);
     initializeEditor();
-    startTime = Date.now();
 });
 
-// Load exercise data
-async function loadExercise(exerciseId) {
+// Load all exercises
+async function loadAllExercises() {
     try {
         const response = await fetch('ejercicios/learn_exercises.json');
         const data = await response.json();
-        currentExercise = data.exercises.find(ex => ex.id === exerciseId);
-
-        if (!currentExercise) {
-            throw new Error('Exercise not found');
-        }
-
-        document.getElementById('exercise-title').textContent = currentExercise.title;
-        loadTheoryStep();
+        allExercises = data.exercises;
     } catch (error) {
-        console.error('Error loading exercise:', error);
-        alert('Error cargando ejercicio');
+        console.error('Error loading exercises:', error);
+        alert('Error cargando ejercicios');
     }
 }
 
-// ========================================
-// STEP 1: THEORY
-// ========================================
+// Load exercise
+function loadExercise(index) {
+    if (index < 0 || index >= allExercises.length) return;
 
-function loadTheoryStep() {
-    const theory = currentExercise.theory;
-
-    document.getElementById('theory-title').textContent = theory.concept;
-    document.getElementById('theory-description').textContent = theory.description;
-
-    // When to use
-    const whenList = document.getElementById('theory-when-to-use');
-    whenList.innerHTML = '';
-    theory.whenToUse.forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = item;
-        whenList.appendChild(li);
-    });
-
-    // Syntax
-    document.getElementById('theory-syntax').textContent = theory.syntax;
-
-    // Syntax components
-    if (theory.components) {
-        const componentsDiv = document.getElementById('syntax-components');
-        componentsDiv.innerHTML = '';
-
-        Object.entries(theory.components).forEach(([name, desc]) => {
-            const item = document.createElement('div');
-            item.className = 'component-item';
-            item.innerHTML = `
-                <span class="component-name">${name}</span>
-                <span class="component-desc">${desc}</span>
-            `;
-            componentsDiv.appendChild(item);
-        });
-    }
-
-    // Performance note
-    if (theory.performance) {
-        document.getElementById('performance-note').style.display = 'flex';
-        document.getElementById('performance-text').textContent = theory.performance;
-    }
-}
-
-// ========================================
-// STEP 2: EXAMPLES
-// ========================================
-
-function loadExamplesStep() {
-    const examplesContent = document.getElementById('examples-content');
-    examplesContent.innerHTML = '';
-
-    currentExercise.examples.forEach((example, index) => {
-        const card = document.createElement('div');
-        card.className = 'example-card';
-        card.innerHTML = `
-            <div class="example-header">
-                ${example.title}
-            </div>
-            <div class="example-body">
-                <div class="example-code">
-                    <pre>${escapeHtml(example.code)}</pre>
-                </div>
-                <div class="example-explanation">
-                    <strong>Explicación:</strong>
-                    <p>${example.explanation}</p>
-                </div>
-            </div>
-        `;
-        examplesContent.appendChild(card);
-    });
-}
-
-// ========================================
-// STEP 3: USE CASES
-// ========================================
-
-function loadUseCasesStep() {
-    const useCasesContent = document.getElementById('use-cases-content');
-    useCasesContent.innerHTML = '';
-
-    currentExercise.useCases.forEach(useCase => {
-        const card = document.createElement('div');
-        card.className = 'use-case-card';
-        card.innerHTML = `
-            <div class="use-case-scenario">${useCase.scenario}</div>
-            <div class="use-case-code">
-                <pre>${escapeHtml(useCase.code)}</pre>
-            </div>
-        `;
-        useCasesContent.appendChild(card);
-    });
-}
-
-// ========================================
-// STEP 4: PRACTICE
-// ========================================
-
-function loadPracticeStep() {
-    const exercise = currentExercise.exercise;
-
-    // Instruction
-    document.getElementById('practice-instruction').textContent = exercise.instruction;
-
-    // Hints setup
+    currentIndex = index;
+    currentExercise = allExercises[index];
     hintsRevealed = 0;
-    revealedHints = [];
-    document.getElementById('hints-available').textContent = exercise.hints.length;
-    document.getElementById('hints-list').innerHTML = '';
 
-    // Test cases preview
-    loadTestCasesPreview();
+    // Update header
+    document.getElementById('exercise-number').textContent = `${index + 1}/${allExercises.length}`;
+    document.getElementById('exercise-title').textContent = currentExercise.title;
 
-    // Set starter code in editor
-    if (editor) {
-        editor.setValue(exercise.starterCode);
-    }
+    // Update progress bar
+    const progress = ((index + 1) / allExercises.length) * 100;
+    document.getElementById('progress-bar-fill').style.width = `${progress}%`;
+
+    // Load content
+    loadInstruction();
+    loadTheory();
+    loadExample();
+    loadHints();
+    loadCode();
+    clearConsole();
 }
 
-function loadTestCasesPreview() {
-    const preview = document.getElementById('test-cases-preview');
-    preview.innerHTML = '';
+// Load instruction
+function loadInstruction() {
+    document.getElementById('instruction-text').textContent = currentExercise.instruction;
+}
 
-    currentExercise.exercise.testCases.forEach((testCase, index) => {
-        const item = document.createElement('div');
-        item.className = 'test-preview-item';
-        item.id = `test-preview-${index}`;
-        item.innerHTML = `
-            <div class="test-status-icon" id="test-icon-${index}">-</div>
-            <span>${testCase.description}</span>
-        `;
-        preview.appendChild(item);
-    });
+// Load theory
+function loadTheory() {
+    document.getElementById('theory-description').textContent = currentExercise.theory;
+    document.getElementById('syntax-code').textContent = currentExercise.syntax;
+}
+
+// Load example
+function loadExample() {
+    document.getElementById('example-code').textContent = currentExercise.example.code;
+    document.getElementById('example-explanation').textContent = currentExercise.example.explanation;
+}
+
+// Load hints
+function loadHints() {
+    const hints = currentExercise.hints || [];
+    document.getElementById('hints-count').textContent = hints.length;
+    document.getElementById('hints-container').innerHTML = '';
+
+    const btn = document.getElementById('btn-reveal-hint');
+    btn.disabled = hints.length === 0;
+    btn.textContent = hints.length === 0 ? 'No hay pistas' : '🔓 Revelar pista';
 }
 
 // Reveal hint
 function revealHint() {
-    const hints = currentExercise.exercise.hints;
+    const hints = currentExercise.hints || [];
 
-    if (hintsRevealed >= hints.length) {
-        return;
-    }
+    if (hintsRevealed >= hints.length) return;
 
-    const hint = hints[hintsRevealed];
-    const hintsList = document.getElementById('hints-list');
-
-    const hintItem = document.createElement('div');
-    hintItem.className = 'hint-item';
-    hintItem.innerHTML = `
-        <span class="hint-number">Pista ${hintsRevealed + 1}:</span>
-        ${hint}
-    `;
-    hintsList.appendChild(hintItem);
+    const container = document.getElementById('hints-container');
+    const hintDiv = document.createElement('div');
+    hintDiv.className = 'hint-item';
+    hintDiv.innerHTML = `<span class="hint-number">Pista ${hintsRevealed + 1}:</span> ${hints[hintsRevealed]}`;
+    container.appendChild(hintDiv);
 
     hintsRevealed++;
-    revealedHints.push(hint);
 
-    // Update available count
+    // Update button
     const remaining = hints.length - hintsRevealed;
-    document.getElementById('hints-available').textContent = remaining;
+    document.getElementById('hints-count').textContent = remaining;
 
-    // Disable button if no more hints
     if (hintsRevealed >= hints.length) {
         document.getElementById('btn-reveal-hint').disabled = true;
-        document.getElementById('btn-reveal-hint').textContent = '✓ Todas las pistas reveladas';
+        document.getElementById('btn-reveal-hint').textContent = '✓ Todas reveladas';
     }
 }
 
-// ========================================
-// STEP NAVIGATION
-// ========================================
-
-function nextStep() {
-    // Hide current step
-    document.getElementById(`step-${getStepName(currentStep)}`).style.display = 'none';
-
-    // Increment step
-    currentStep++;
-
-    // Show next step
-    const nextStepName = getStepName(currentStep);
-    document.getElementById(`step-${nextStepName}`).style.display = 'block';
-
-    // Load content for next step
-    if (currentStep === 2) {
-        loadExamplesStep();
-    } else if (currentStep === 3) {
-        loadUseCasesStep();
-    } else if (currentStep === 4) {
-        loadPracticeStep();
+// Load code in editor
+function loadCode() {
+    if (editor) {
+        editor.setValue(currentExercise.starterCode);
     }
-
-    // Update progress bar
-    updateProgress();
-
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
-function prevStep() {
-    // Hide current step
-    document.getElementById(`step-${getStepName(currentStep)}`).style.display = 'none';
-
-    // Decrement step
-    currentStep--;
-
-    // Show previous step
-    const prevStepName = getStepName(currentStep);
-    document.getElementById(`step-${prevStepName}`).style.display = 'block';
-
-    // Update progress bar
-    updateProgress();
-
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function getStepName(stepNumber) {
-    const steps = ['theory', 'examples', 'use-cases', 'practice'];
-    return steps[stepNumber - 1];
-}
-
-function updateProgress() {
-    const progress = (currentStep / 4) * 100;
-    document.getElementById('progress-fill').style.width = `${progress}%`;
-    document.getElementById('progress-text').textContent = `Paso ${currentStep} de 4`;
-}
-
-// ========================================
-// CODE EXECUTION
-// ========================================
 
 // Initialize Monaco Editor
 function initializeEditor() {
@@ -283,37 +125,66 @@ function initializeEditor() {
     require(['vs/editor/editor.main'], function () {
         editor = monaco.editor.create(document.getElementById('code-editor'), {
             value: '',
-            language: currentExercise.category === 'sql' ? 'sql' : 'python',
+            language: 'python',
             theme: 'vs-dark',
             minimap: { enabled: false },
             fontSize: 14,
             lineNumbers: 'on',
             automaticLayout: true,
-            scrollBeyondLastLine: false
+            scrollBeyondLastLine: false,
+            wordWrap: 'on'
         });
+
+        // Load code after editor is ready
+        if (currentExercise) {
+            loadCode();
+        }
     });
 }
 
+// ========================================
+// CODE EXECUTION
+// ========================================
+
 // Run code
 async function runCode() {
-    attemptCount++;
     showLoadingModal();
 
     try {
         const code = editor.getValue();
-        let result;
-
-        if (currentExercise.category === 'python' || currentExercise.subcategory === 'pandas') {
-            result = await runPython(code);
-        } else {
-            throw new Error('Category not supported yet');
-        }
+        const result = await runPython(code);
 
         hideLoadingModal();
-        displayOutput(result);
+        displayConsoleOutput(result.output, 'success');
+
+        if (result.error) {
+            displayConsoleOutput(`\nWarnings:\n${result.error}`, 'error');
+        }
     } catch (error) {
         hideLoadingModal();
-        displayError(error);
+        displayConsoleOutput(`Error: ${error.message}`, 'error');
+    }
+}
+
+// Submit solution
+async function submitSolution() {
+    showLoadingModal();
+
+    try {
+        const code = editor.getValue();
+        const isCorrect = await validateSolution(code);
+
+        hideLoadingModal();
+
+        if (isCorrect) {
+            displayConsoleOutput('✅ ¡Solución correcta!', 'success');
+            setTimeout(() => showSuccessModal(), 500);
+        } else {
+            displayConsoleOutput('❌ Solución incorrecta. Revisa tu código e intenta de nuevo.', 'error');
+        }
+    } catch (error) {
+        hideLoadingModal();
+        displayConsoleOutput(`Error en validación: ${error.message}`, 'error');
     }
 }
 
@@ -341,16 +212,18 @@ sys.stderr = StringIO()
 
         return {
             success: true,
-            output: stdout || 'Código ejecutado exitosamente',
+            output: stdout || 'Código ejecutado exitosamente (sin output)',
             error: stderr
         };
     } catch (error) {
-        throw new Error(`Python Error: ${error.message}`);
+        throw new Error(error.message);
     }
 }
 
 // Initialize Pyodide
 async function initPyodide() {
+    displayConsoleOutput('Inicializando Python... (esto puede tomar unos segundos la primera vez)', 'info');
+
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js';
 
@@ -364,149 +237,88 @@ async function initPyodide() {
         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/'
     });
 
-    // Load packages
+    // Load packages if needed
     await pyodideInstance.loadPackage(['numpy', 'pandas']);
+
+    displayConsoleOutput('✓ Python listo\n', 'success');
 }
 
-// Display output
-function displayOutput(result) {
-    switchOutputTab('output');
-    const output = document.getElementById('output-content');
-    output.innerHTML = `
-        <div style="color: #10b981; margin-bottom: 1rem;">✓ Ejecución exitosa</div>
-        <pre style="margin: 0; white-space: pre-wrap;">${escapeHtml(result.output)}</pre>
-        ${result.error ? `<pre style="margin-top: 1rem; color: #f59e0b;">Warnings:\n${escapeHtml(result.error)}</pre>` : ''}
-    `;
-}
-
-// Display error
-function displayError(error) {
-    switchOutputTab('output');
-    const output = document.getElementById('output-content');
-    output.innerHTML = `
-        <div style="color: #ef4444; margin-bottom: 1rem;">✗ Error de ejecución</div>
-        <pre style="margin: 0; color: #f87171;">${escapeHtml(error.message)}</pre>
-    `;
-}
-
-// Submit and validate code
-async function submitCode() {
-    attemptCount++;
-    showLoadingModal();
-
-    try {
-        const code = editor.getValue();
-        const testResults = await validateSolution(code);
-
-        hideLoadingModal();
-        displayTestResults(testResults);
-
-        // Check if all passed
-        const allPassed = testResults.every(t => t.passed);
-        if (allPassed) {
-            setTimeout(() => showSuccessModal(), 500);
-        }
-    } catch (error) {
-        hideLoadingModal();
-        displayError(error);
-    }
-}
-
-// Validate solution against test cases
+// Validate solution
 async function validateSolution(code) {
     if (!pyodideInstance) {
         await initPyodide();
     }
 
-    const testCases = currentExercise.exercise.testCases;
-    const results = [];
+    try {
+        // Run user code + solution check
+        const solution = currentExercise.solution;
+        const test = currentExercise.test;
 
-    for (const [index, testCase] of testCases.entries()) {
-        try {
-            // Run user code + test
-            const testCode = `
-${code}
+        // Execute user code
+        await pyodideInstance.runPythonAsync(code);
 
-# Test case
-test_input = ${testCase.input}
-result = double_positives(test_input)
-expected = ${testCase.expected}
+        // Execute test
+        const result = await pyodideInstance.runPythonAsync(test);
 
-# Check if result matches expected
-result == expected
-`;
-
-            const passed = await pyodideInstance.runPythonAsync(testCode);
-
-            results.push({
-                index,
-                description: testCase.description,
-                passed: passed === true,
-                expected: testCase.expected,
-                input: testCase.input
-            });
-
-            // Update UI
-            updateTestPreview(index, passed === true);
-
-        } catch (error) {
-            results.push({
-                index,
-                description: testCase.description,
-                passed: false,
-                error: error.message
-            });
-
-            updateTestPreview(index, false);
-        }
+        return result === true;
+    } catch (error) {
+        console.error('Validation error:', error);
+        return false;
     }
-
-    return results;
 }
 
-// Update test preview icon
-function updateTestPreview(index, passed) {
-    const icon = document.getElementById(`test-icon-${index}`);
-    if (passed) {
-        icon.classList.add('passed');
-        icon.textContent = '✓';
+// Display console output
+function displayConsoleOutput(text, type = 'success') {
+    const console = document.getElementById('console-output');
+
+    // Clear placeholder
+    const placeholder = console.querySelector('.console-placeholder');
+    if (placeholder) {
+        placeholder.remove();
+    }
+
+    const output = document.createElement('pre');
+    output.className = `console-${type}`;
+    output.textContent = text;
+    console.appendChild(output);
+
+    // Auto-scroll to bottom
+    console.scrollTop = console.scrollHeight;
+}
+
+// Clear console
+function clearConsole() {
+    const console = document.getElementById('console-output');
+    console.innerHTML = '<div class="console-placeholder">Ejecuta tu código para ver la salida aquí...</div>';
+}
+
+// Reset code
+function resetCode() {
+    if (confirm('¿Seguro que quieres resetear el código?')) {
+        loadCode();
+        clearConsole();
+    }
+}
+
+// ========================================
+// NAVIGATION
+// ========================================
+
+// Next exercise
+function nextExercise() {
+    if (currentIndex < allExercises.length - 1) {
+        loadExercise(currentIndex + 1);
+        closeSuccessModal();
     } else {
-        icon.classList.add('failed');
-        icon.textContent = '✗';
+        alert('¡Completaste todos los ejercicios! 🎉');
     }
 }
 
-// Display test results in output
-function displayTestResults(results) {
-    switchOutputTab('tests');
-    const output = document.getElementById('output-content');
-
-    const passedCount = results.filter(r => r.passed).length;
-    const totalCount = results.length;
-
-    let html = `
-        <div style="margin-bottom: 1.5rem;">
-            <strong style="font-size: 1.1rem;">Resultados: ${passedCount}/${totalCount} tests pasaron</strong>
-        </div>
-    `;
-
-    results.forEach(result => {
-        const status = result.passed ? 'passed' : 'failed';
-        const icon = result.passed ? '✓' : '✗';
-        const color = result.passed ? '#10b981' : '#ef4444';
-
-        html += `
-            <div style="background: #f9fafb; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border-left: 4px solid ${color};">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <span style="color: ${color}; font-weight: bold;">${icon}</span>
-                    <strong>${result.description}</strong>
-                </div>
-                ${result.error ? `<pre style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">${escapeHtml(result.error)}</pre>` : ''}
-            </div>
-        `;
-    });
-
-    output.innerHTML = html;
+// Go back
+function goBack() {
+    if (confirm('¿Seguro que quieres salir? Perderás tu progreso.')) {
+        window.location.href = 'index.html';
+    }
 }
 
 // ========================================
@@ -517,31 +329,11 @@ function showSuccessModal() {
     const modal = document.getElementById('success-modal');
     modal.style.display = 'flex';
 
-    // Calculate time
-    const timeElapsed = Math.floor((Date.now() - startTime) / 1000);
-    const minutes = Math.floor(timeElapsed / 60);
-    const seconds = timeElapsed % 60;
-    document.getElementById('completion-time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-    // Set attempts
-    document.getElementById('attempts-count').textContent = attemptCount;
-
-    // Set hints used
-    document.getElementById('hints-used').textContent = hintsRevealed;
+    document.getElementById('success-message').textContent = currentExercise.successMessage || 'Has completado este ejercicio.';
 }
 
 function closeSuccessModal() {
     document.getElementById('success-modal').style.display = 'none';
-}
-
-function goToNextExercise() {
-    const nextExercises = currentExercise.nextExercises;
-    if (nextExercises && nextExercises.length > 0) {
-        window.location.href = `learn.html?id=${nextExercises[0]}`;
-    } else {
-        alert('¡Completaste todos los ejercicios de este módulo!');
-        goBack();
-    }
 }
 
 function showLoadingModal() {
@@ -550,32 +342,4 @@ function showLoadingModal() {
 
 function hideLoadingModal() {
     document.getElementById('loading-modal').style.display = 'none';
-}
-
-// ========================================
-// UTILITIES
-// ========================================
-
-function switchOutputTab(tabName) {
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => tab.classList.remove('active'));
-    event?.target?.classList.add('active');
-}
-
-function resetCode() {
-    if (confirm('¿Estás seguro de que quieres resetear el código?')) {
-        editor.setValue(currentExercise.exercise.starterCode);
-    }
-}
-
-function goBack() {
-    if (confirm('¿Estás seguro de que quieres salir? Se perderá tu progreso.')) {
-        window.location.href = 'index.html';
-    }
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }

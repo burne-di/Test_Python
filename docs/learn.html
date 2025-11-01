@@ -8,180 +8,114 @@
     <link rel="stylesheet" href="css/learn.css">
 </head>
 <body class="learn-page">
+    <!-- Header con progreso -->
     <header class="learn-header">
-        <div class="container">
-            <div class="header-top">
-                <button onclick="goBack()" class="back-button">← Volver</button>
-                <h1 id="exercise-title">Cargando...</h1>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progress-bar">
-                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        <div class="container-fluid">
+            <div class="header-content">
+                <button onclick="goBack()" class="btn-back">← Salir</button>
+                <div class="progress-info">
+                    <span class="exercise-number" id="exercise-number">1/10</span>
+                    <h1 id="exercise-title">Cargando...</h1>
                 </div>
-                <span class="progress-text" id="progress-text">Paso 1 de 4</span>
+                <button onclick="nextExercise()" class="btn-next-ex">Siguiente →</button>
+            </div>
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" id="progress-bar-fill" style="width: 10%"></div>
             </div>
         </div>
     </header>
 
-    <main class="learn-container">
-        <!-- STEP 1: THEORY -->
-        <div class="step-container" id="step-theory" style="display: block;">
-            <div class="step-header">
-                <span class="step-badge">📚 Paso 1: Teoría</span>
-                <h2 id="theory-title">Concepto</h2>
-            </div>
+    <!-- Main: Layout estilo DataCamp -->
+    <main class="learn-layout">
+        <!-- PANEL IZQUIERDO: Teoría e Instrucciones -->
+        <aside class="theory-panel">
+            <div class="panel-content">
+                <!-- Instrucción -->
+                <section class="instruction-section">
+                    <h2>📋 Instrucción</h2>
+                    <p id="instruction-text">Cargando instrucción...</p>
+                </section>
 
-            <div class="theory-content">
-                <div class="theory-card">
-                    <h3>¿Qué es?</h3>
-                    <p id="theory-description"></p>
-                </div>
+                <!-- Teoría -->
+                <section class="theory-section">
+                    <h3>📚 Teoría</h3>
+                    <div id="theory-content">
+                        <p id="theory-description"></p>
 
-                <div class="theory-card">
-                    <h3>¿Cuándo usarlo?</h3>
-                    <ul id="theory-when-to-use"></ul>
-                </div>
-
-                <div class="theory-card syntax-card">
-                    <h3>Sintaxis</h3>
-                    <div class="code-block">
-                        <code id="theory-syntax"></code>
+                        <div class="syntax-box">
+                            <strong>Sintaxis:</strong>
+                            <code id="syntax-code"></code>
+                        </div>
                     </div>
-                    <div class="syntax-components" id="syntax-components"></div>
-                </div>
+                </section>
 
-                <div class="performance-note" id="performance-note" style="display: none;">
-                    <span class="note-icon">⚡</span>
-                    <span id="performance-text"></span>
+                <!-- Ejemplo -->
+                <section class="example-section">
+                    <h3>📝 Ejemplo</h3>
+                    <div class="example-box">
+                        <pre id="example-code"></pre>
+                    </div>
+                    <p class="example-explanation" id="example-explanation"></p>
+                </section>
+
+                <!-- Hints -->
+                <section class="hints-section">
+                    <h3>💡 Pistas (<span id="hints-count">3</span> disponibles)</h3>
+                    <div id="hints-container">
+                        <!-- Hints will be revealed here -->
+                    </div>
+                    <button onclick="revealHint()" class="btn-hint" id="btn-reveal-hint">
+                        🔓 Revelar pista
+                    </button>
+                </section>
+            </div>
+        </aside>
+
+        <!-- PANEL DERECHO: Editor + Consola -->
+        <div class="editor-panel">
+            <!-- Editor -->
+            <div class="editor-section">
+                <div class="editor-header">
+                    <span>💻 Editor de Código</span>
+                    <button onclick="resetCode()" class="btn-reset">🔄 Reset</button>
                 </div>
+                <div id="code-editor" class="code-editor"></div>
             </div>
 
-            <div class="step-actions">
-                <button onclick="nextStep()" class="btn-next">
-                    Siguiente: Ver Ejemplos →
+            <!-- Botones de acción -->
+            <div class="actions-bar">
+                <button onclick="runCode()" class="btn-run">
+                    ▶️ Ejecutar
+                </button>
+                <button onclick="submitSolution()" class="btn-submit">
+                    ✅ Submit
                 </button>
             </div>
-        </div>
 
-        <!-- STEP 2: EXAMPLES -->
-        <div class="step-container" id="step-examples" style="display: none;">
-            <div class="step-header">
-                <span class="step-badge">📝 Paso 2: Ejemplos</span>
-                <h2>Ejemplos Prácticos</h2>
-            </div>
-
-            <div class="examples-content" id="examples-content">
-                <!-- Examples will be loaded here -->
-            </div>
-
-            <div class="step-actions">
-                <button onclick="prevStep()" class="btn-secondary">← Anterior</button>
-                <button onclick="nextStep()" class="btn-next">Siguiente: Casos de Uso →</button>
-            </div>
-        </div>
-
-        <!-- STEP 3: USE CASES -->
-        <div class="step-container" id="step-use-cases" style="display: none;">
-            <div class="step-header">
-                <span class="step-badge">💼 Paso 3: Casos de Uso</span>
-                <h2>¿Dónde se usa en Data Engineering?</h2>
-            </div>
-
-            <div class="use-cases-content" id="use-cases-content">
-                <!-- Use cases will be loaded here -->
-            </div>
-
-            <div class="step-actions">
-                <button onclick="prevStep()" class="btn-secondary">← Anterior</button>
-                <button onclick="nextStep()" class="btn-next">Siguiente: Practicar →</button>
-            </div>
-        </div>
-
-        <!-- STEP 4: PRACTICE -->
-        <div class="step-container" id="step-practice" style="display: none;">
-            <div class="step-header">
-                <span class="step-badge">✏️ Paso 4: Práctica</span>
-                <h2>Ahora tú: Resuelve el ejercicio</h2>
-            </div>
-
-            <div class="practice-layout">
-                <div class="practice-left">
-                    <div class="instruction-box">
-                        <h3>📋 Instrucción</h3>
-                        <p id="practice-instruction"></p>
-                    </div>
-
-                    <div class="hints-box">
-                        <h3>💡 Pistas (<span id="hints-available">3</span> disponibles)</h3>
-                        <div id="hints-list"></div>
-                        <button onclick="revealHint()" class="btn-hint" id="btn-reveal-hint">
-                            🔓 Revelar pista
-                        </button>
-                    </div>
-
-                    <div class="test-cases-box">
-                        <h3>✓ Casos de prueba</h3>
-                        <div id="test-cases-preview"></div>
+            <!-- Consola -->
+            <div class="console-section">
+                <div class="console-header">
+                    <span>📟 Consola</span>
+                    <button onclick="clearConsole()" class="btn-clear">Limpiar</button>
+                </div>
+                <div id="console-output" class="console-output">
+                    <div class="console-placeholder">
+                        Ejecuta tu código para ver la salida aquí...
                     </div>
                 </div>
-
-                <div class="practice-right">
-                    <div class="editor-section">
-                        <div class="editor-header">
-                            <h3>Editor de Código</h3>
-                            <div class="editor-controls">
-                                <button onclick="resetCode()" class="btn-secondary">🔄 Reset</button>
-                                <button onclick="runCode()" class="btn-primary">▶️ Ejecutar</button>
-                                <button onclick="submitCode()" class="btn-success" id="btn-submit">✓ Enviar Solución</button>
-                            </div>
-                        </div>
-                        <div id="code-editor" class="code-editor-container"></div>
-                    </div>
-
-                    <div class="output-section">
-                        <div class="tabs">
-                            <button class="tab active" onclick="switchOutputTab('output')">Salida</button>
-                            <button class="tab" onclick="switchOutputTab('tests')">Tests</button>
-                        </div>
-                        <div id="output-content" class="output-content">
-                            <div class="placeholder">
-                                Ejecuta tu código para ver los resultados
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="step-actions">
-                <button onclick="prevStep()" class="btn-secondary">← Anterior</button>
             </div>
         </div>
     </main>
 
-    <!-- Success Modal -->
+    <!-- Modal de Éxito -->
     <div id="success-modal" class="modal" style="display: none;">
         <div class="modal-content success-modal">
-            <div class="success-icon">🎉</div>
-            <h2>¡Excelente trabajo!</h2>
-            <p>Has completado este ejercicio correctamente.</p>
-            <div class="success-stats">
-                <div class="stat">
-                    <span class="stat-label">Tiempo</span>
-                    <span class="stat-value" id="completion-time">5:30</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Intentos</span>
-                    <span class="stat-value" id="attempts-count">2</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Pistas usadas</span>
-                    <span class="stat-value" id="hints-used">1</span>
-                </div>
-            </div>
+            <div class="success-animation">🎉</div>
+            <h2>¡Correcto!</h2>
+            <p id="success-message">Has completado este ejercicio.</p>
             <div class="modal-actions">
-                <button onclick="closeSuccessModal()" class="btn-secondary">Revisar Código</button>
-                <button onclick="goToNextExercise()" class="btn-primary">Siguiente Ejercicio →</button>
-                <button onclick="goBack()" class="btn-secondary">Volver al Inicio</button>
+                <button onclick="closeSuccessModal()" class="btn-secondary">Revisar</button>
+                <button onclick="nextExercise()" class="btn-primary">Siguiente Ejercicio →</button>
             </div>
         </div>
     </div>
@@ -190,7 +124,7 @@
     <div id="loading-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="loader"></div>
-            <p>Ejecutando código...</p>
+            <p>Ejecutando...</p>
         </div>
     </div>
 
