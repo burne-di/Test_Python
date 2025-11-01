@@ -1,0 +1,464 @@
+{
+  "exercises": [
+    {
+      "id": "learn_python_001",
+      "title": "List Comprehensions",
+      "category": "python",
+      "subcategory": "fundamentos",
+      "difficulty": "junior",
+      "estimatedTime": 10,
+      "theory": {
+        "concept": "List Comprehensions",
+        "description": "Las list comprehensions son una forma concisa y elegante de crear listas en Python. Permiten transformar o filtrar elementos de una secuencia en una sola línea de código.",
+        "whenToUse": [
+          "Cuando necesitas crear una nueva lista a partir de otra secuencia",
+          "Para aplicar transformaciones simples a cada elemento",
+          "Para filtrar elementos que cumplan ciertas condiciones",
+          "Como alternativa más legible a map() y filter()"
+        ],
+        "syntax": "[expresion for item in iterable if condicion]",
+        "components": {
+          "expresion": "Transformación aplicada a cada elemento",
+          "item": "Variable que representa cada elemento",
+          "iterable": "Secuencia a iterar (lista, rango, string, etc.)",
+          "condicion": "Filtro opcional para incluir solo ciertos elementos"
+        }
+      },
+      "examples": [
+        {
+          "title": "Ejemplo 1: Crear lista de cuadrados",
+          "code": "# Forma tradicional con loop\nsquares = []\nfor x in range(10):\n    squares.append(x**2)\n\n# Con list comprehension (más conciso)\nsquares = [x**2 for x in range(10)]\nprint(squares)\n# Output: [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]",
+          "explanation": "Genera los cuadrados de números del 0 al 9 en una sola línea"
+        },
+        {
+          "title": "Ejemplo 2: Filtrar números pares",
+          "code": "numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\nevens = [x for x in numbers if x % 2 == 0]\nprint(evens)\n# Output: [2, 4, 6, 8, 10]",
+          "explanation": "Filtra solo los números pares usando la condición 'if x % 2 == 0'"
+        },
+        {
+          "title": "Ejemplo 3: Transformar y filtrar",
+          "code": "words = ['hello', 'world', 'python', 'data']\nlong_words_upper = [word.upper() for word in words if len(word) > 4]\nprint(long_words_upper)\n# Output: ['HELLO', 'WORLD', 'PYTHON']",
+          "explanation": "Convierte a mayúsculas solo las palabras con más de 4 letras"
+        }
+      ],
+      "useCases": [
+        {
+          "scenario": "Data Engineering: Limpiar nombres de columnas",
+          "code": "columns = ['User Name', 'Email Address', 'Phone Number']\nclean_columns = [col.lower().replace(' ', '_') for col in columns]\n# Result: ['user_name', 'email_address', 'phone_number']"
+        },
+        {
+          "scenario": "Procesar archivos: Obtener solo archivos .csv",
+          "code": "files = ['data.csv', 'info.txt', 'sales.csv', 'readme.md']\ncsv_files = [f for f in files if f.endswith('.csv')]\n# Result: ['data.csv', 'sales.csv']"
+        }
+      ],
+      "exercise": {
+        "instruction": "Completa la función que recibe una lista de números y retorna una nueva lista con solo los números positivos multiplicados por 2.",
+        "starterCode": "def double_positives(numbers):\n    \"\"\"\n    Retorna lista con números positivos multiplicados por 2\n    \n    Args:\n        numbers: Lista de enteros (positivos y negativos)\n    \n    Returns:\n        Lista con solo números positivos * 2\n    \n    Ejemplo:\n        >>> double_positives([1, -2, 3, -4, 5])\n        [2, 6, 10]\n    \"\"\"\n    # Tu código aquí usando list comprehension\n    result = []\n    return result",
+        "solution": "def double_positives(numbers):\n    result = [num * 2 for num in numbers if num > 0]\n    return result",
+        "testCases": [
+          {
+            "input": "[1, -2, 3, -4, 5]",
+            "expected": "[2, 6, 10]",
+            "description": "Filtra negativos y duplica positivos"
+          },
+          {
+            "input": "[10, 20, -30, 40]",
+            "expected": "[20, 40, 80]",
+            "description": "Solo valores positivos duplicados"
+          },
+          {
+            "input": "[-1, -2, -3]",
+            "expected": "[]",
+            "description": "Lista vacía si todos son negativos"
+          },
+          {
+            "input": "[0, 5, 0, 10]",
+            "expected": "[10, 20]",
+            "description": "El cero no es positivo"
+          }
+        ],
+        "hints": [
+          "Usa la sintaxis: [expresion for item in lista if condicion]",
+          "La expresión debe multiplicar el número por 2: num * 2",
+          "La condición debe verificar si el número es mayor que 0"
+        ]
+      },
+      "relatedConcepts": ["Generator expressions", "map()", "filter()", "Lambda functions"],
+      "nextExercises": ["learn_python_002", "learn_python_003"]
+    },
+
+    {
+      "id": "learn_pandas_001",
+      "title": "DataFrame.apply() - Transformaciones por Columna",
+      "category": "python",
+      "subcategory": "pandas",
+      "difficulty": "junior",
+      "estimatedTime": 15,
+      "theory": {
+        "concept": "DataFrame.apply()",
+        "description": "El método apply() permite aplicar una función a lo largo de un eje del DataFrame (filas o columnas). Es extremadamente útil para transformaciones complejas que no pueden hacerse con operaciones vectorizadas.",
+        "whenToUse": [
+          "Cuando necesitas aplicar lógica compleja a cada fila/columna",
+          "Para transformaciones que requieren múltiples operaciones",
+          "Cuando las operaciones vectorizadas no son suficientes",
+          "Para crear nuevas columnas basadas en múltiples columnas existentes"
+        ],
+        "syntax": "df.apply(func, axis=0)",
+        "components": {
+          "func": "Función a aplicar (puede ser lambda o función definida)",
+          "axis": "0 (default) = por columna, 1 = por fila"
+        },
+        "performance": "⚠️ apply() es más lento que operaciones vectorizadas. Usa vectorización cuando sea posible."
+      },
+      "examples": [
+        {
+          "title": "Ejemplo 1: Aplicar función a una columna",
+          "code": "import pandas as pd\n\ndf = pd.DataFrame({\n    'name': ['Alice', 'Bob', 'Charlie'],\n    'age': [25, 30, 35]\n})\n\n# Agregar prefijo a nombres\ndf['name'] = df['name'].apply(lambda x: f'Mr./Ms. {x}')\nprint(df)\n#         name  age\n# 0   Mr./Ms. Alice   25\n# 1     Mr./Ms. Bob   30\n# 2 Mr./Ms. Charlie   35",
+          "explanation": "Aplica una función lambda que agrega prefijo a cada nombre"
+        },
+        {
+          "title": "Ejemplo 2: Aplicar función personalizada",
+          "code": "def categorize_age(age):\n    if age < 30:\n        return 'Young'\n    elif age < 60:\n        return 'Adult'\n    else:\n        return 'Senior'\n\ndf['category'] = df['age'].apply(categorize_age)\nprint(df)\n#   name  age category\n# 0  Alice   25    Young\n# 1    Bob   30    Adult\n# 2 Charlie   35    Adult",
+          "explanation": "Usa una función definida para categorizar edades"
+        },
+        {
+          "title": "Ejemplo 3: Apply por fila (axis=1)",
+          "code": "df = pd.DataFrame({\n    'product': ['A', 'B', 'C'],\n    'price': [100, 200, 150],\n    'quantity': [5, 3, 4]\n})\n\n# Calcular total por fila\ndf['total'] = df.apply(lambda row: row['price'] * row['quantity'], axis=1)\nprint(df)\n#   product  price  quantity  total\n# 0       A    100         5    500\n# 1       B    200         3    600\n# 2       C    150         4    600",
+          "explanation": "axis=1 aplica la función a cada fila, accediendo a múltiples columnas"
+        }
+      ],
+      "useCases": [
+        {
+          "scenario": "Data Engineering: Limpiar y validar emails",
+          "code": "def clean_email(email):\n    return email.lower().strip() if '@' in email else None\n\ndf['clean_email'] = df['email'].apply(clean_email)"
+        },
+        {
+          "scenario": "Feature Engineering: Crear features complejas",
+          "code": "def create_feature(row):\n    return (row['metric1'] * 0.5 + row['metric2'] * 0.3) / row['metric3']\n\ndf['new_feature'] = df.apply(create_feature, axis=1)"
+        }
+      ],
+      "exercise": {
+        "instruction": "Completa la función que recibe un DataFrame con columnas 'temperature' (en Celsius) y retorna el DataFrame con una nueva columna 'fahrenheit' usando apply().",
+        "starterCode": "import pandas as pd\n\ndef add_fahrenheit(df):\n    \"\"\"\n    Agrega columna 'fahrenheit' convirtiendo desde Celsius\n    \n    Formula: F = C * 9/5 + 32\n    \n    Args:\n        df: DataFrame con columna 'temperature' en Celsius\n    \n    Returns:\n        DataFrame con columna 'fahrenheit' agregada\n    \n    Ejemplo:\n        df = pd.DataFrame({'temperature': [0, 100, 37]})\n        result = add_fahrenheit(df)\n        # temperature  fahrenheit\n        # 0            0        32.0\n        # 1          100       212.0\n        # 2           37        98.6\n    \"\"\"\n    # Tu código aquí usando apply()\n    \n    return df",
+        "solution": "import pandas as pd\n\ndef add_fahrenheit(df):\n    df['fahrenheit'] = df['temperature'].apply(lambda c: c * 9/5 + 32)\n    return df",
+        "testCases": [
+          {
+            "setup": "df = pd.DataFrame({'temperature': [0, 100, 37]})",
+            "expected": "df['fahrenheit'].tolist() == [32.0, 212.0, 98.6]",
+            "description": "Conversión correcta de Celsius a Fahrenheit"
+          },
+          {
+            "setup": "df = pd.DataFrame({'temperature': [-40, 0]})",
+            "expected": "df['fahrenheit'].tolist() == [-40.0, 32.0]",
+            "description": "Maneja temperaturas negativas"
+          },
+          {
+            "setup": "df = pd.DataFrame({'temperature': []})",
+            "expected": "len(df) == 0",
+            "description": "Maneja DataFrame vacío"
+          }
+        ],
+        "hints": [
+          "Usa df['temperature'].apply() para aplicar a la columna",
+          "La función lambda debe ser: lambda c: c * 9/5 + 32",
+          "Asigna el resultado a df['fahrenheit']"
+        ]
+      },
+      "relatedConcepts": ["map()", "applymap()", "Vectorization", "Lambda functions"],
+      "nextExercises": ["learn_pandas_002", "learn_pandas_003"]
+    },
+
+    {
+      "id": "learn_pandas_002",
+      "title": "DataFrame.groupby() - Agregaciones",
+      "category": "python",
+      "subcategory": "pandas",
+      "difficulty": "mid",
+      "estimatedTime": 15,
+      "theory": {
+        "concept": "DataFrame.groupby()",
+        "description": "groupby() es una de las funciones más poderosas de Pandas. Permite dividir datos en grupos basados en criterios, aplicar funciones de agregación, y combinar los resultados. Sigue el patrón split-apply-combine.",
+        "whenToUse": [
+          "Calcular estadísticas por categorías (ej: ventas por región)",
+          "Agregaciones complejas (suma, promedio, conteo por grupo)",
+          "Análisis de cohortes y segmentación",
+          "Preparar datos para visualizaciones agrupadas"
+        ],
+        "syntax": "df.groupby(columnas).agg(funcion)",
+        "components": {
+          "columnas": "Columna(s) por las que agrupar (string o lista)",
+          "agg": "Función de agregación: sum, mean, count, min, max, etc.",
+          "as_index": "False para mantener columnas de agrupación como columnas (no índice)"
+        }
+      },
+      "examples": [
+        {
+          "title": "Ejemplo 1: Agrupar y sumar",
+          "code": "import pandas as pd\n\ndf = pd.DataFrame({\n    'region': ['North', 'South', 'North', 'South'],\n    'sales': [100, 200, 150, 250]\n})\n\ntotal_by_region = df.groupby('region')['sales'].sum()\nprint(total_by_region)\n# region\n# North    250\n# South    450\n# Name: sales, dtype: int64",
+          "explanation": "Suma las ventas agrupadas por región"
+        },
+        {
+          "title": "Ejemplo 2: Múltiples agregaciones",
+          "code": "stats = df.groupby('region')['sales'].agg(['sum', 'mean', 'count'])\nprint(stats)\n#         sum   mean  count\n# region                   \n# North   250  125.0      2\n# South   450  225.0      2",
+          "explanation": "Aplica múltiples funciones de agregación simultáneamente"
+        },
+        {
+          "title": "Ejemplo 3: Agrupar por múltiples columnas",
+          "code": "df = pd.DataFrame({\n    'region': ['North', 'South', 'North', 'South'],\n    'product': ['A', 'A', 'B', 'B'],\n    'sales': [100, 200, 150, 250]\n})\n\nresult = df.groupby(['region', 'product'])['sales'].sum()\nprint(result)\n# region  product\n# North   A          100\n#         B          150\n# South   A          200\n#         B          250\n# Name: sales, dtype: int64",
+          "explanation": "Agrupa por región Y producto para análisis más granular"
+        }
+      ],
+      "useCases": [
+        {
+          "scenario": "Data Engineering: Calcular métricas por usuario",
+          "code": "user_metrics = transactions.groupby('user_id').agg({\n    'amount': ['sum', 'mean', 'count'],\n    'transaction_date': ['min', 'max']\n})"
+        },
+        {
+          "scenario": "Analytics: Análisis de cohortes mensuales",
+          "code": "monthly_cohorts = users.groupby(users['signup_date'].dt.to_period('M')).agg({\n    'user_id': 'count',\n    'revenue': 'sum'\n})"
+        }
+      ],
+      "exercise": {
+        "instruction": "Completa la función que recibe un DataFrame de ventas y retorna las ventas totales por categoría de producto, ordenadas de mayor a menor.",
+        "starterCode": "import pandas as pd\n\ndef sales_by_category(df):\n    \"\"\"\n    Calcula ventas totales por categoría, ordenadas descendente\n    \n    Args:\n        df: DataFrame con columnas 'category' y 'amount'\n    \n    Returns:\n        Series con ventas totales por categoría (ordenado mayor a menor)\n    \n    Ejemplo:\n        df = pd.DataFrame({\n            'category': ['Electronics', 'Food', 'Electronics', 'Food'],\n            'amount': [1000, 50, 1500, 75]\n        })\n        result = sales_by_category(df)\n        # category\n        # Electronics    2500\n        # Food            125\n        # Name: amount, dtype: int64\n    \"\"\"\n    # Tu código aquí usando groupby()\n    \n    return result",
+        "solution": "import pandas as pd\n\ndef sales_by_category(df):\n    result = df.groupby('category')['amount'].sum().sort_values(ascending=False)\n    return result",
+        "testCases": [
+          {
+            "setup": "df = pd.DataFrame({'category': ['Electronics', 'Food', 'Electronics'], 'amount': [1000, 50, 1500]})",
+            "expected": "result.tolist() == [2500, 50]",
+            "description": "Suma correcta por categoría"
+          },
+          {
+            "setup": "df = pd.DataFrame({'category': ['A', 'B', 'C'], 'amount': [100, 300, 200]})",
+            "expected": "result.index[0] == 'B'",
+            "description": "Orden descendente correcto"
+          }
+        ],
+        "hints": [
+          "Usa df.groupby('category')['amount'].sum()",
+          "Encadena .sort_values(ascending=False) para ordenar",
+          "El resultado debe ser un Series, no un DataFrame"
+        ]
+      },
+      "relatedConcepts": ["pivot_table()", "crosstab()", "agg()", "transform()"],
+      "nextExercises": ["learn_pandas_003", "learn_pandas_004"]
+    },
+
+    {
+      "id": "learn_python_003",
+      "title": "Lambda Functions - Funciones Anónimas",
+      "category": "python",
+      "subcategory": "fundamentos",
+      "difficulty": "junior",
+      "estimatedTime": 10,
+      "theory": {
+        "concept": "Lambda Functions",
+        "description": "Las funciones lambda son funciones anónimas pequeñas que se definen en una sola línea. Son útiles cuando necesitas una función simple y no quieres definirla formalmente con 'def'.",
+        "whenToUse": [
+          "Como argumento en funciones como map(), filter(), sorted()",
+          "En Pandas con apply(), applymap()",
+          "Cuando la lógica es simple y se usa una sola vez",
+          "Para ordenar con llaves personalizadas"
+        ],
+        "syntax": "lambda argumentos: expresion",
+        "components": {
+          "lambda": "Palabra clave que indica función anónima",
+          "argumentos": "Parámetros separados por comas",
+          "expresion": "Valor a retornar (solo UNA expresión)"
+        }
+      },
+      "examples": [
+        {
+          "title": "Ejemplo 1: Lambda con map()",
+          "code": "# Función normal\ndef square(x):\n    return x ** 2\n\nnumbers = [1, 2, 3, 4, 5]\nsquares = list(map(square, numbers))\n\n# Con lambda (más conciso)\nsquares = list(map(lambda x: x ** 2, numbers))\nprint(squares)\n# Output: [1, 4, 9, 16, 25]",
+          "explanation": "Lambda elimina la necesidad de definir una función separada"
+        },
+        {
+          "title": "Ejemplo 2: Ordenar con lambda",
+          "code": "students = [\n    {'name': 'Alice', 'grade': 85},\n    {'name': 'Bob', 'grade': 92},\n    {'name': 'Charlie', 'grade': 78}\n]\n\n# Ordenar por calificación\nsorted_students = sorted(students, key=lambda s: s['grade'], reverse=True)\nprint([s['name'] for s in sorted_students])\n# Output: ['Bob', 'Alice', 'Charlie']",
+          "explanation": "Lambda extrae la llave de ordenamiento de cada diccionario"
+        },
+        {
+          "title": "Ejemplo 3: Filtrar con lambda",
+          "code": "numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\nevens = list(filter(lambda x: x % 2 == 0, numbers))\nprint(evens)\n# Output: [2, 4, 6, 8, 10]",
+          "explanation": "Lambda retorna True/False para filtrar elementos"
+        }
+      ],
+      "useCases": [
+        {
+          "scenario": "Data Engineering: Limpiar nombres de archivos",
+          "code": "files = ['DATA_2024.csv', 'INFO_2024.txt', 'SALES_2024.csv']\ncsv_files = list(filter(lambda f: f.endswith('.csv'), files))\nclean_names = list(map(lambda f: f.lower().replace('_', '-'), csv_files))"
+        },
+        {
+          "scenario": "Analytics: Calcular métricas personalizadas",
+          "code": "transactions = [{'amount': 100}, {'amount': 200}, {'amount': 50}]\ntotal_with_fee = sum(map(lambda t: t['amount'] * 1.05, transactions))"
+        }
+      ],
+      "exercise": {
+        "instruction": "Completa la función que usa lambda para convertir una lista de strings a mayúsculas y filtrar solo las que tienen más de 3 caracteres.",
+        "starterCode": "def filter_and_upper(words):\n    \"\"\"\n    Filtra palabras > 3 caracteres y convierte a mayúsculas\n    \n    Args:\n        words: Lista de strings\n    \n    Returns:\n        Lista de strings en mayúsculas (solo > 3 chars)\n    \n    Ejemplo:\n        >>> filter_and_upper(['hi', 'hello', 'bye', 'world'])\n        ['HELLO', 'WORLD']\n    \"\"\"\n    # Tu código aquí usando filter y map con lambdas\n    \n    return result",
+        "solution": "def filter_and_upper(words):\n    filtered = filter(lambda w: len(w) > 3, words)\n    result = list(map(lambda w: w.upper(), filtered))\n    return result",
+        "testCases": [
+          {
+            "input": "['hi', 'hello', 'bye', 'world']",
+            "expected": "['HELLO', 'WORLD']",
+            "description": "Filtra y convierte correctamente"
+          },
+          {
+            "input": "['a', 'ab', 'abc', 'abcd']",
+            "expected": "['ABCD']",
+            "description": "Solo palabras con más de 3 caracteres"
+          }
+        ],
+        "hints": [
+          "Usa filter(lambda w: len(w) > 3, words) para filtrar",
+          "Usa map(lambda w: w.upper(), filtered) para convertir",
+          "Convierte el resultado a lista con list()"
+        ]
+      },
+      "relatedConcepts": ["map()", "filter()", "List comprehensions", "Higher-order functions"],
+      "nextExercises": ["learn_python_004", "learn_pandas_001"]
+    },
+
+    {
+      "id": "learn_pandas_003",
+      "title": "DataFrame.merge() - Joins en Pandas",
+      "category": "python",
+      "subcategory": "pandas",
+      "difficulty": "mid",
+      "estimatedTime": 20,
+      "theory": {
+        "concept": "DataFrame.merge()",
+        "description": "merge() es el equivalente de SQL JOINs en Pandas. Permite combinar dos DataFrames basándose en columnas comunes o índices. Es fundamental para relacionar datos de múltiples fuentes.",
+        "whenToUse": [
+          "Combinar datos de múltiples fuentes/tablas",
+          "Enriquecer un DataFrame con información de otro",
+          "Realizar análisis que requieren relacionar datos",
+          "Implementar lógica de JOIN similar a SQL"
+        ],
+        "syntax": "df1.merge(df2, on='columna', how='inner')",
+        "components": {
+          "on": "Columna(s) para hacer el join",
+          "how": "'inner', 'left', 'right', 'outer' (tipo de join)",
+          "left_on/right_on": "Columnas diferentes para cada DataFrame",
+          "suffixes": "Sufijos para columnas duplicadas"
+        }
+      },
+      "examples": [
+        {
+          "title": "Ejemplo 1: Inner Join",
+          "code": "import pandas as pd\n\nusers = pd.DataFrame({\n    'user_id': [1, 2, 3],\n    'name': ['Alice', 'Bob', 'Charlie']\n})\n\norders = pd.DataFrame({\n    'order_id': [101, 102],\n    'user_id': [1, 2],\n    'amount': [100, 200]\n})\n\nresult = users.merge(orders, on='user_id', how='inner')\nprint(result)\n#    user_id     name  order_id  amount\n# 0        1    Alice       101     100\n# 1        2      Bob       102     200",
+          "explanation": "Inner join solo incluye usuarios que tienen órdenes"
+        },
+        {
+          "title": "Ejemplo 2: Left Join",
+          "code": "result = users.merge(orders, on='user_id', how='left')\nprint(result)\n#    user_id     name  order_id  amount\n# 0        1    Alice     101.0   100.0\n# 1        2      Bob     102.0   200.0\n# 2        3  Charlie       NaN     NaN",
+          "explanation": "Left join incluye todos los usuarios, con NaN si no tienen órdenes"
+        },
+        {
+          "title": "Ejemplo 3: Join con columnas diferentes",
+          "code": "df1 = pd.DataFrame({'key1': ['A', 'B'], 'value1': [1, 2]})\ndf2 = pd.DataFrame({'key2': ['A', 'B'], 'value2': [3, 4]})\n\nresult = df1.merge(df2, left_on='key1', right_on='key2')\nprint(result)\n#   key1  value1 key2  value2\n# 0    A       1    A       3\n# 1    B       2    B       4",
+          "explanation": "left_on y right_on permiten joins con nombres diferentes"
+        }
+      ],
+      "useCases": [
+        {
+          "scenario": "Data Engineering: Enriquecer transacciones con info de usuarios",
+          "code": "enriched = transactions.merge(users, on='user_id', how='left')\nenriched = enriched.merge(products, on='product_id', how='left')"
+        },
+        {
+          "scenario": "Analytics: Análisis de cohorts",
+          "code": "user_cohorts = users.merge(first_purchase, on='user_id')\nretention = user_cohorts.merge(repeat_purchases, on='user_id', how='left')"
+        }
+      ],
+      "exercise": {
+        "instruction": "Completa la función que hace un left join entre empleados y departamentos, retornando solo las columnas 'employee_name', 'department_name' y 'salary'.",
+        "starterCode": "import pandas as pd\n\ndef join_employees_departments(employees, departments):\n    \"\"\"\n    Join empleados con departamentos\n    \n    Args:\n        employees: DataFrame con 'employee_id', 'employee_name', 'dept_id', 'salary'\n        departments: DataFrame con 'dept_id', 'department_name'\n    \n    Returns:\n        DataFrame con 'employee_name', 'department_name', 'salary'\n    \"\"\"\n    # Tu código aquí\n    \n    return result",
+        "solution": "import pandas as pd\n\ndef join_employees_departments(employees, departments):\n    result = employees.merge(departments, on='dept_id', how='left')\n    result = result[['employee_name', 'department_name', 'salary']]\n    return result",
+        "testCases": [
+          {
+            "setup": "employees = pd.DataFrame({'employee_id': [1, 2], 'employee_name': ['Alice', 'Bob'], 'dept_id': [10, 20], 'salary': [50000, 60000]}); departments = pd.DataFrame({'dept_id': [10, 20], 'department_name': ['IT', 'Sales']})",
+            "expected": "result.columns.tolist() == ['employee_name', 'department_name', 'salary']",
+            "description": "Columnas correctas en el resultado"
+          },
+          {
+            "setup": "employees = pd.DataFrame({'employee_id': [1], 'employee_name': ['Alice'], 'dept_id': [10], 'salary': [50000]}); departments = pd.DataFrame({'dept_id': [10], 'department_name': ['IT']})",
+            "expected": "len(result) == 1",
+            "description": "Retorna el número correcto de filas"
+          }
+        ],
+        "hints": [
+          "Usa employees.merge(departments, on='dept_id', how='left')",
+          "Selecciona columnas con result[['col1', 'col2', 'col3']]",
+          "El tipo de join debe ser 'left' para incluir todos los empleados"
+        ]
+      },
+      "relatedConcepts": ["join()", "concat()", "SQL JOINs", "merge_asof()"],
+      "nextExercises": ["learn_pandas_004", "learn_sql_001"]
+    },
+
+    {
+      "id": "learn_pandas_004",
+      "title": "DataFrame.pivot_table() - Tablas Dinámicas",
+      "category": "python",
+      "subcategory": "pandas",
+      "difficulty": "mid",
+      "estimatedTime": 20,
+      "theory": {
+        "concept": "DataFrame.pivot_table()",
+        "description": "pivot_table() crea tablas de resumen tipo Excel. Reorganiza datos largos (long format) a formato ancho (wide format), aplicando funciones de agregación. Es esencial para análisis multidimensional.",
+        "whenToUse": [
+          "Crear reportes con filas y columnas cruzadas",
+          "Calcular métricas por múltiples dimensiones",
+          "Transformar datos de formato largo a ancho",
+          "Análisis de ventas, métricas por región/tiempo, etc."
+        ],
+        "syntax": "df.pivot_table(values='col', index='row', columns='col', aggfunc='mean')",
+        "components": {
+          "values": "Columna con valores a agregar",
+          "index": "Columna(s) para las filas",
+          "columns": "Columna(s) para las columnas",
+          "aggfunc": "Función de agregación: 'sum', 'mean', 'count', etc."
+        },
+        "performance": "⚠️ pivot_table hace múltiples operaciones. Para datasets grandes, considera usar groupby() directamente."
+      },
+      "examples": [
+        {
+          "title": "Ejemplo 1: Ventas por región y producto",
+          "code": "import pandas as pd\n\nsales = pd.DataFrame({\n    'region': ['North', 'South', 'North', 'South'],\n    'product': ['A', 'A', 'B', 'B'],\n    'revenue': [100, 200, 150, 250]\n})\n\npivot = sales.pivot_table(\n    values='revenue',\n    index='region',\n    columns='product',\n    aggfunc='sum'\n)\nprint(pivot)\n# product     A    B\n# region            \n# North   100.0  150.0\n# South   200.0  250.0",
+          "explanation": "Crea tabla con regiones en filas y productos en columnas"
+        },
+        {
+          "title": "Ejemplo 2: Múltiples agregaciones",
+          "code": "pivot = sales.pivot_table(\n    values='revenue',\n    index='region',\n    aggfunc=['sum', 'mean', 'count']\n)\nprint(pivot)\n#          sum  mean count\n# region                   \n# North    250 125.0     2\n# South    450 225.0     2",
+          "explanation": "Calcula múltiples estadísticas simultáneamente"
+        }
+      ],
+      "useCases": [
+        {
+          "scenario": "Data Engineering: Reporte de métricas por mes y categoría",
+          "code": "monthly_report = df.pivot_table(\n    values='amount',\n    index=df['date'].dt.to_period('M'),\n    columns='category',\n    aggfunc='sum',\n    fill_value=0\n)"
+        }
+      ],
+      "exercise": {
+        "instruction": "Crea una pivot table que muestre el promedio de ventas por región (filas) y trimestre (columnas).",
+        "starterCode": "import pandas as pd\n\ndef create_sales_pivot(df):\n    \"\"\"\n    Crea pivot table: región x trimestre con promedio de ventas\n    \n    Args:\n        df: DataFrame con 'region', 'quarter', 'sales'\n    \n    Returns:\n        DataFrame pivoteado con promedios\n    \"\"\"\n    # Tu código aquí\n    \n    return pivot",
+        "solution": "import pandas as pd\n\ndef create_sales_pivot(df):\n    pivot = df.pivot_table(\n        values='sales',\n        index='region',\n        columns='quarter',\n        aggfunc='mean'\n    )\n    return pivot",
+        "testCases": [
+          {
+            "setup": "df = pd.DataFrame({'region': ['North', 'South', 'North'], 'quarter': ['Q1', 'Q1', 'Q2'], 'sales': [100, 200, 150]})",
+            "expected": "pivot.loc['North', 'Q1'] == 100",
+            "description": "Calcula promedios correctamente"
+          }
+        ],
+        "hints": [
+          "Usa df.pivot_table(values='sales', index='region', columns='quarter')",
+          "El aggfunc debe ser 'mean' para promedios",
+          "No necesitas fill_value para este ejercicio"
+        ]
+      },
+      "relatedConcepts": ["groupby()", "unstack()", "crosstab()", "melt()"],
+      "nextExercises": ["learn_pandas_005", "learn_pandas_006"]
+    }
+  ]
+}

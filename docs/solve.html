@@ -220,8 +220,104 @@
         </div>
     </div>
 
+    <!-- AI Assistant -->
+    <div id="ai-assistant-container" class="ai-assistant-container">
+        <button id="ai-toggle-btn" class="ai-toggle-btn" onclick="toggleAIAssistant()">
+            🤖 AI Asistente
+        </button>
+
+        <div id="ai-chat-panel" class="ai-chat-panel" style="display: none;">
+            <div class="ai-chat-header">
+                <span>🤖 AI Asistente - Gemini</span>
+                <div>
+                    <button onclick="openAISettings()" class="ai-btn-icon" title="Configuración">⚙️</button>
+                    <button onclick="clearAIChat()" class="ai-btn-icon" title="Limpiar chat">🗑️</button>
+                    <button onclick="toggleAIAssistant()" class="ai-btn-icon">✕</button>
+                </div>
+            </div>
+
+            <div id="ai-chat-messages" class="ai-chat-messages">
+                <div class="ai-message ai-message-system">
+                    👋 ¡Hola! Soy tu asistente de IA. Puedo ayudarte con:
+                    <ul>
+                        <li>Explicar errores en tu código</li>
+                        <li>Dar hints sin revelar la solución</li>
+                        <li>Aclarar conceptos de programación</li>
+                        <li>Sugerir mejores prácticas</li>
+                    </ul>
+                    <small style="opacity: 0.7;">💡 Tip: Haz preguntas específicas para mejores respuestas</small>
+                </div>
+            </div>
+
+            <div class="ai-chat-input-container">
+                <div class="ai-quick-actions">
+                    <button onclick="askAI('Explica el error que tengo')" class="ai-quick-btn">🐛 Explicar error</button>
+                    <button onclick="askAI('Dame una pista para resolver esto')" class="ai-quick-btn">💡 Dame pista</button>
+                    <button onclick="askAI('¿Qué concepto debo usar aquí?')" class="ai-quick-btn">📚 Conceptos</button>
+                </div>
+                <div class="ai-input-row">
+                    <input
+                        type="text"
+                        id="ai-chat-input"
+                        class="ai-chat-input"
+                        placeholder="Pregunta algo... (Enter para enviar)"
+                        onkeypress="handleAIChatKeyPress(event)"
+                    />
+                    <button onclick="sendAIMessage()" class="ai-send-btn">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Settings Modal -->
+    <div id="ai-settings-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>⚙️ Configuración de IA</h2>
+                <button onclick="closeAISettings()" class="close-btn">✕</button>
+            </div>
+            <div style="padding: 1.5rem;">
+                <h3 style="margin-bottom: 1rem;">Gemini API Key</h3>
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    Para usar el asistente de IA, necesitas una API key de Google Gemini (gratuita).
+                </p>
+
+                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <strong>Cómo obtener tu API key:</strong>
+                    <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Ve a <a href="https://aistudio.google.com/apikey" target="_blank" style="color: var(--primary-color);">Google AI Studio</a></li>
+                        <li>Inicia sesión con tu cuenta Google</li>
+                        <li>Click en "Get API Key" → "Create API key"</li>
+                        <li>Copia la key y pégala abajo</li>
+                    </ol>
+                </div>
+
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                    Tu API Key:
+                </label>
+                <input
+                    type="password"
+                    id="ai-api-key-input"
+                    placeholder="AIza..."
+                    style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace;"
+                />
+
+                <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    🔒 Tu API key se guarda localmente en tu navegador. No la compartimos.
+                </div>
+
+                <div id="ai-key-status" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+            </div>
+            <div class="modal-actions">
+                <button onclick="saveAISettings()" class="btn-primary">💾 Guardar</button>
+                <button onclick="removeAIKey()" class="btn-secondary">🗑️ Eliminar Key</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Monaco Editor -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script src="js/ai-assistant.js"></script>
     <script src="js/solve.js"></script>
 </body>
 </html>

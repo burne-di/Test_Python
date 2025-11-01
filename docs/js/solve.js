@@ -325,9 +325,15 @@ async function runCode() {
         hideLoadingModal();
         displayResults(results);
         validateResults(results);
+
+        // Clear error since code executed successfully
+        lastError = null;
     } catch (error) {
         hideLoadingModal();
         displayError(error);
+
+        // Capture error for AI context
+        lastError = error.message;
     }
 }
 
@@ -576,10 +582,20 @@ function displayError(error) {
 // Validate results against test cases
 function validateResults(results) {
     // Simplified validation - in production would be more sophisticated
+    const testResults = [];
+
     currentExercise.testCases.forEach((testCase, index) => {
         const passed = Math.random() > 0.3; // Placeholder validation
         updateTestCaseStatus(index, passed);
+
+        testResults.push({
+            description: testCase.description,
+            passed: passed
+        });
     });
+
+    // Capture test results for AI context
+    lastTestResults = testResults;
 }
 
 // Update test case status
@@ -819,4 +835,203 @@ function loadPyodide(config) {
         script.onerror = reject;
         document.head.appendChild(script);
     });
+}
+
+// ========================================
+// AI ASSISTANT FUNCTIONS
+// ========================================
+
+// Global variables for AI context
+let lastError = null;
+let lastTestResults = null;
+
+// Toggle AI chat panel
+function toggleAIAssistant() {
+    const panel = document.getElementById('ai-chat-panel');
+    const isVisible = panel.style.display !== 'none';
+    panel.style.display = isVisible ? 'none' : 'block';
+
+    // Check if API key is configured
+    if (!isVisible && !aiAssistant.isEnabled) {
+        setTimeout(() => {
+            if (confirm('No tienes configurada una API key de Gemini. ¿Quieres configurarla ahora?')) {
+                openAISettings();
+            }
+        }, 300);
+    }
+}
+
+// Send message to AI
+async function sendAIMessage() {
+    const input = document.getElementById('ai-chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    // Add user message to chat
+    addMessageToChat(message, 'user');
+    input.value = '';
+
+    // Show loading
+    const loadingId = addMessageToChat('Pensando...', 'loading');
+
+    try {
+        const context = {
+            exercise: currentExercise,
+            userCode: editor ? editor.getValue() : '',
+            error: lastError,
+            testResults: lastTestResults
+        };
+
+        const response = await aiAssistant.sendMessage(message, context);
+        removeMessageFromChat(loadingId);
+        addMessageToChat(response, 'assistant');
+    } catch (error) {
+        removeMessageFromChat(loadingId);
+        addMessageToChat(`❌ Error: ${error.message}`, 'error');
+
+        // If API key error, suggest configuration
+        if (error.message.includes('API key')) {
+            setTimeout(() => {
+                if (confirm('Parece que tu API key no está configurada o es inválida. ¿Quieres configurarla?')) {
+                    openAISettings();
+                }
+            }, 500);
+        }
+    }
+}
+
+// Quick action handler
+function askAI(question) {
+    const input = document.getElementById('ai-chat-input');
+    input.value = question;
+    sendAIMessage();
+}
+
+// Open AI settings modal
+function openAISettings() {
+    document.getElementById('ai-settings-modal').style.display = 'flex';
+    const currentKey = aiAssistant.apiKey;
+    if (currentKey) {
+        document.getElementById('ai-api-key-input').value = currentKey;
+    }
+}
+
+// Close AI settings modal
+function closeAISettings() {
+    document.getElementById('ai-settings-modal').style.display = 'none';
+}
+
+// Save AI settings
+function saveAISettings() {
+    const key = document.getElementById('ai-api-key-input').value.trim();
+    if (!key) {
+        showAIStatus('Por favor ingresa una API key', 'error');
+        return;
+    }
+
+    if (!key.startsWith('AIza')) {
+        showAIStatus('⚠️ La API key de Gemini normalmente comienza con "AIza"', 'warning');
+    }
+
+    aiAssistant.saveAPIKey(key);
+    showAIStatus('✅ API Key guardada correctamente', 'success');
+    setTimeout(() => closeAISettings(), 1500);
+}
+
+// Remove AI key
+function removeAIKey() {
+    if (confirm('¿Seguro que quieres eliminar tu API key?')) {
+        aiAssistant.removeAPIKey();
+        document.getElementById('ai-api-key-input').value = '';
+        showAIStatus('🗑️ API Key eliminada', 'success');
+        setTimeout(() => {
+            clearAIChat();
+        }, 1000);
+    }
+}
+
+// Clear chat
+function clearAIChat() {
+    aiAssistant.clearHistory();
+    const messagesDiv = document.getElementById('ai-chat-messages');
+    messagesDiv.innerHTML = `
+        <div class="ai-message ai-message-system">
+            👋 ¡Hola! Soy tu asistente de IA. Puedo ayudarte con:
+            <ul>
+                <li>Explicar errores en tu código</li>
+                <li>Dar hints sin revelar la solución</li>
+                <li>Aclarar conceptos de programación</li>
+                <li>Sugerir mejores prácticas</li>
+            </ul>
+            <small style="opacity: 0.7;">💡 Tip: Haz preguntas específicas para mejores respuestas</small>
+        </div>
+    `;
+}
+
+// Handle Enter key in chat input
+function handleAIChatKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendAIMessage();
+    }
+}
+
+// Helper: Add message to chat UI
+function addMessageToChat(text, type) {
+    const messagesDiv = document.getElementById('ai-chat-messages');
+    const messageDiv = document.createElement('div');
+    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    messageDiv.className = `ai-message ai-message-${type}`;
+    messageDiv.id = messageId;
+
+    if (type === 'loading') {
+        messageDiv.innerHTML = `
+            <span>${text}</span>
+            <span class="ai-loading-dots">
+                <span>.</span><span>.</span><span>.</span>
+            </span>
+        `;
+    } else if (type === 'assistant') {
+        // Render markdown-style formatting
+        const formattedText = text
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+        messageDiv.innerHTML = formattedText;
+    } else {
+        messageDiv.textContent = text;
+    }
+
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    return messageId;
+}
+
+// Helper: Remove message from chat
+function removeMessageFromChat(messageId) {
+    const messageDiv = document.getElementById(messageId);
+    if (messageDiv) {
+        messageDiv.remove();
+    }
+}
+
+// Helper: Show status in AI settings modal
+function showAIStatus(message, type) {
+    const statusDiv = document.getElementById('ai-key-status');
+    statusDiv.textContent = message;
+    statusDiv.style.display = 'block';
+
+    // Set color based on type
+    if (type === 'success') {
+        statusDiv.style.background = '#d1fae5';
+        statusDiv.style.color = '#065f46';
+    } else if (type === 'error') {
+        statusDiv.style.background = '#fee2e2';
+        statusDiv.style.color = '#991b1b';
+    } else if (type === 'warning') {
+        statusDiv.style.background = '#fef3c7';
+        statusDiv.style.color = '#92400e';
+    }
 }
