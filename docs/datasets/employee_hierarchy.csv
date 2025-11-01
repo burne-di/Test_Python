@@ -1,0 +1,11 @@
+employee_id,name,manager_id,salary,department
+1,Alice Chen,NULL,150000,Executive
+2,Bob Smith,1,120000,Engineering
+3,Carol Davis,1,125000,Sales
+4,Dave Wilson,2,90000,Engineering
+5,Eve Martinez,2,95000,Engineering
+6,Frank Johnson,4,70000,Engineering
+7,Grace Lee,3,85000,Sales
+8,Henry Brown,3,88000,Sales
+9,Ivy Taylor,7,65000,Sales
+10,Jack Anderson,2,92000,Engineering

@@ -1,0 +1,11 @@
+user_id,amount,category,status,product,date
+1,150.50,food,completed,Groceries,2024-01-01
+2,45.00,transport,completed,Uber,2024-01-01
+3,200.00,entertainment,pending,Cinema,2024-01-02
+1,75.25,food,completed,Restaurant,2024-01-02
+4,500.00,other,failed,Electronics,2024-01-03
+2,30.00,transport,completed,Bus,2024-01-03
+3,120.00,food,completed,Groceries,2024-01-04
+5,85.50,entertainment,completed,Concert,2024-01-04
+1,250.00,other,pending,Clothes,2024-01-05
+4,40.00,transport,completed,Taxi,2024-01-05

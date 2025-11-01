@@ -49,6 +49,45 @@ Test_Python/
 - **Google Colab** - Entorno de ejecución para PySpark
 - **Apache Spark 3.5** - Procesamiento distribuido
 
+## 📊 Cómo Funcionan los Datasets
+
+### Python
+Los datasets se cargan automáticamente en el filesystem virtual de Pyodide cuando ejecutas tu código. Si existe un archivo CSV/JSON en `docs/datasets/`, estará disponible en tu código Python:
+
+```python
+import pandas as pd
+
+# El archivo se carga automáticamente
+df = pd.read_csv('sample_data.csv')
+print(df.head())
+```
+
+**Datasets disponibles:**
+- ✅ `sample_data.csv` - Transacciones de ejemplo
+- ✅ `raw_customer_data.csv` - Datos de clientes con errores
+- ✅ `employee_hierarchy.csv` - Jerarquía organizacional
+
+**Para ejercicios avanzados**, puedes generar datos sintéticos:
+
+```python
+import pandas as pd
+import numpy as np
+
+# Genera tus propios datos
+df = pd.DataFrame({
+    'user_id': np.random.randint(1, 1000, 100000),
+    'amount': np.random.uniform(1, 1000, 100000),
+    'category': np.random.choice(['A', 'B', 'C'], 100000)
+})
+```
+
+### SQL
+Los datasets se cargan automáticamente como tablas SQLite cuando abres un ejercicio SQL. Puedes hacer queries directamente:
+
+```sql
+SELECT * FROM sales LIMIT 5;
+```
+
 ### Hosting
 - **GitHub Pages** - Hosting gratuito estático
 

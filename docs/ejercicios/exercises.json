@@ -247,6 +247,677 @@
           "assertion": "parallel_time < serial_time * 0.5"
         }
       ]
+    },
+    {
+      "id": "python_004",
+      "title": "Memory-Efficient Data Processing con Generators",
+      "category": "python",
+      "difficulty": "senior",
+      "description": "Procesa archivos CSV gigantes (>10GB) línea por línea sin cargar todo en memoria.",
+      "timeLimit": 40,
+      "dataset": "sample_data.csv",
+      "instructions": "Implementa un pipeline de procesamiento memory-efficient que:\n1. Lea archivo CSV de 10GB+ línea por línea usando generators\n2. Aplique transformaciones y filtros sin cargar todo en memoria\n3. Calcule agregaciones (sum, count, avg) en streaming\n4. Maneje errores de parsing sin detener el proceso\n5. Genere reportes incrementales cada 1M registros\n\nREQUISITO: Uso máximo de memoria 100MB sin importar tamaño del archivo.",
+      "starterCode": "import csv\nfrom typing import Iterator, Dict\nimport sys\n\ndef read_large_csv(file_path: str, chunk_size: int = 10000) -> Iterator[Dict]:\n    \"\"\"\n    Lee CSV gigante línea por línea como generator\n    \n    Args:\n        file_path: Path al archivo CSV\n        chunk_size: Tamaño de buffer de lectura\n    \n    Yields:\n        Dict con datos de cada fila\n    \"\"\"\n    # Tu código aquí\n    pass\n\ndef process_streaming(file_path: str) -> Dict:\n    \"\"\"\n    Procesa archivo en streaming y retorna estadísticas\n    \n    Args:\n        file_path: Path al archivo CSV\n    \n    Returns:\n        Dict con: total_records, total_amount, avg_amount, \n                  error_count, top_categories\n    \"\"\"\n    # Tu código aquí\n    # Usa generators para no cargar todo en memoria\n    pass\n\n# Test\nstats = process_streaming('large_transactions.csv')\nprint(f\"Procesados {stats['total_records']:,} registros\")\nprint(f\"Memoria usada: {sys.getsizeof(stats)} bytes\")",
+      "knowledge": [
+        {
+          "concept": "Generators - Lazy Evaluation",
+          "description": "Los generators permiten procesar datos de forma lazy (bajo demanda), generando items uno a la vez en lugar de cargar todo en memoria. Son fundamentales para Data Engineering con grandes volúmenes.",
+          "syntax": "def my_generator():\n    for item in collection:\n        yield processed_item  # yield en vez de return",
+          "example": "def read_lines(file_path):\n    with open(file_path) as f:\n        for line in f:\n            yield line.strip()\n\n# Uso - no carga todo el archivo en memoria\nfor line in read_lines('huge_file.txt'):\n    process(line)  # Procesa una línea a la vez",
+          "output": "# Memoria constante sin importar tamaño del archivo\n# Puede procesar archivos de TBs con 100MB RAM",
+          "note": "Los generators son esenciales en Data Engineering para procesar datos que no caben en memoria. yield suspende la función y retorna un valor, manteniendo el estado."
+        },
+        {
+          "concept": "Iterator Protocol y __iter__/__next__",
+          "description": "El iterator protocol permite crear objetos iterables custom. Útil para crear pipelines de transformación encadenables y memory-efficient.",
+          "syntax": "class MyIterator:\n    def __iter__(self):\n        return self\n    def __next__(self):\n        # retorna siguiente item o raise StopIteration",
+          "example": "class ChunkReader:\n    def __init__(self, data, chunk_size):\n        self.data = data\n        self.chunk_size = chunk_size\n        self.index = 0\n    \n    def __iter__(self):\n        return self\n    \n    def __next__(self):\n        if self.index >= len(self.data):\n            raise StopIteration\n        chunk = self.data[self.index:self.index + self.chunk_size]\n        self.index += self.chunk_size\n        return chunk\n\n# Uso\nfor chunk in ChunkReader(range(100), 10):\n    print(len(chunk))  # 10, 10, 10, ...",
+          "output": "10\n10\n10\n...",
+          "note": "__iter__ retorna el iterador (usualmente self). __next__ retorna el siguiente item o raise StopIteration cuando termina."
+        },
+        {
+          "concept": "Streaming Aggregations",
+          "description": "Calcular agregaciones (sum, avg, count) sin cargar todos los datos en memoria. Usa variables acumuladoras que se actualizan con cada nuevo item.",
+          "syntax": "total = 0\ncount = 0\nfor item in stream:\n    total += item\n    count += 1\navg = total / count",
+          "example": "def streaming_stats(data_stream):\n    count = 0\n    sum_val = 0\n    sum_sq = 0  # Para calcular stddev\n    \n    for value in data_stream:\n        count += 1\n        sum_val += value\n        sum_sq += value ** 2\n    \n    avg = sum_val / count\n    variance = (sum_sq / count) - (avg ** 2)\n    stddev = variance ** 0.5\n    \n    return {'count': count, 'avg': avg, 'stddev': stddev}\n\n# Procesa 1B records con memoria constante\nstats = streaming_stats(huge_data_generator())",
+          "output": "{'count': 1000000000, 'avg': 42.5, 'stddev': 15.3}\n# Memoria usada: ~100 bytes (solo variables)  ",
+          "note": "Para avg solo necesitas sum y count. Para stddev necesitas sum of squares. Nunca necesitas guardar todos los valores."
+        },
+        {
+          "concept": "csv.DictReader con Generators",
+          "description": "DictReader ya es un generator - retorna una fila a la vez como dict. Perfecto para procesar CSVs gigantes línea por línea.",
+          "syntax": "import csv\nwith open('file.csv') as f:\n    for row in csv.DictReader(f):\n        process(row)  # row es un dict",
+          "example": "import csv\n\ndef process_large_csv(file_path):\n    total_amount = 0\n    count = 0\n    \n    with open(file_path, 'r') as f:\n        reader = csv.DictReader(f)\n        for row in reader:\n            # row es dict: {'amount': '100', 'date': '2024-01-01'}\n            amount = float(row['amount'])\n            total_amount += amount\n            count += 1\n            \n            # Reporte cada 1M registros\n            if count % 1_000_000 == 0:\n                print(f\"Procesados {count:,} registros\")\n    \n    return {'total': total_amount, 'count': count}\n\nstats = process_large_csv('10gb_file.csv')  # Usa ~1MB RAM",
+          "output": "Procesados 1,000,000 registros\nProcessados 2,000,000 registros\n...\n{'total': 1500000000.50, 'count': 50000000}",
+          "note": "DictReader es más lento que reader normal pero mucho más legible. Para performance máxima usa csv.reader y accede por índice."
+        },
+        {
+          "concept": "try/except en Loops - Robust Error Handling",
+          "description": "En pipelines de datos reales, algunos registros pueden estar corruptos. Es crítico manejar errores sin detener el proceso completo.",
+          "syntax": "for item in data:\n    try:\n        process(item)\n    except Exception as e:\n        log_error(e)\n        continue  # Continúa con siguiente item",
+          "example": "def robust_process(file_path):\n    success_count = 0\n    error_count = 0\n    errors = []\n    \n    with open(file_path) as f:\n        for line_num, line in enumerate(f, 1):\n            try:\n                data = json.loads(line)\n                process(data)\n                success_count += 1\n            except json.JSONDecodeError as e:\n                error_count += 1\n                errors.append(f\"Line {line_num}: {str(e)}\")\n                continue\n            except Exception as e:\n                error_count += 1\n                errors.append(f\"Line {line_num}: Unexpected - {str(e)}\")\n                continue\n    \n    return {\n        'success': success_count,\n        'errors': error_count,\n        'error_details': errors[:10]  # Primeros 10 errores\n    }",
+          "output": "{\n  'success': 9995,\n  'errors': 5,\n  'error_details': [\n    'Line 42: Invalid JSON',\n    'Line 103: Missing field amount',\n    ...\n  ]\n}",
+          "note": "NUNCA dejes que un registro corrupto detenga todo el pipeline. Loggea errores y continúa. En producción, los errores son inevitables."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# Archivo CSV de 10GB con 100M registros\n# large_transactions.csv:\n# transaction_id,amount,category,date\n# 1,100.50,food,2024-01-01\n# 2,250.00,transport,2024-01-01\n# ...",
+          "output": "# Procesamiento streaming:\nProcesados 1,000,000 registros\nProcesados 2,000,000 registros\n...\nProcesados 100,000,000 registros\n\n{\n  'total_records': 100000000,\n  'total_amount': 15000000000.50,\n  'avg_amount': 150.00,\n  'error_count': 42,\n  'top_categories': [('food', 45M), ('transport', 30M)]\n}\n\n# Memoria usada: ~50MB (constante)",
+          "explanation": "El generator procesa línea por línea sin cargar todo en memoria. Las agregaciones se calculan incrementalmente."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Generator Básico:</strong><br>Usa <code>csv.DictReader</code> que ya es un generator:<br><code>with open(file_path) as f:<br>    for row in csv.DictReader(f):<br>        yield row</code><br><br>Esto lee una línea a la vez, sin cargar todo el archivo.",
+        "<strong>Pista 2 - Agregaciones en Streaming:</strong><br>Mantén variables acumuladoras:<br><code>total_amount = 0<br>count = 0<br>for row in read_large_csv(file):<br>    total_amount += float(row['amount'])<br>    count += 1</code><br><br>No necesitas guardar todos los valores para calcular sum/avg.",
+        "<strong>Pista 3 - Top Categories con Counter:</strong><br>Para top categories sin cargar todo:<br><code>from collections import Counter<br>categories = Counter()<br>for row in data:<br>    categories[row['category']] += 1<br>top_5 = categories.most_common(5)</code><br><br>Counter usa memoria proporcional a unique categories, no a total registros."
+      ],
+      "testCases": [
+        {
+          "description": "Debe procesar archivo sin cargar todo en memoria",
+          "assertion": "memory_used < 100 * 1024 * 1024  # < 100MB"
+        },
+        {
+          "description": "Debe calcular agregaciones correctamente",
+          "assertion": "abs(result['avg_amount'] - expected_avg) < 0.01"
+        }
+      ]
+    },
+    {
+      "id": "python_005",
+      "title": "Data Quality Validation Pipeline",
+      "category": "python",
+      "difficulty": "senior",
+      "description": "Crea un sistema robusto de validación de calidad de datos con reglas configurables.",
+      "timeLimit": 50,
+      "dataset": "incoming_data.csv",
+      "instructions": "Implementa un framework de validación de datos que:\n1. Defina reglas de validación como objetos configurables\n2. Valide múltiples condiciones: nulls, ranges, formats, business logic\n3. Genere reporte detallado de violaciones por regla y por registro\n4. Soporte diferentes severity levels (warning, error, critical)\n5. Permita validaciones custom con funciones lambda\n6. Sea extensible para agregar nuevas reglas fácilmente\n\nEl sistema debe validar 1M+ registros en <30 segundos.",
+      "starterCode": "from typing import List, Dict, Callable, Any\nfrom enum import Enum\nimport pandas as pd\n\nclass Severity(Enum):\n    WARNING = 1\n    ERROR = 2\n    CRITICAL = 3\n\nclass ValidationRule:\n    def __init__(self, name: str, condition: Callable, \n                 severity: Severity, message: str):\n        self.name = name\n        self.condition = condition\n        self.severity = severity\n        self.message = message\n    \n    def validate(self, df: pd.DataFrame) -> pd.Series:\n        \"\"\"Retorna boolean Series indicando qué filas pasan\"\"\"\n        # Tu código aquí\n        pass\n\nclass DataQualityValidator:\n    def __init__(self):\n        self.rules: List[ValidationRule] = []\n    \n    def add_rule(self, rule: ValidationRule):\n        \"\"\"Agrega una regla de validación\"\"\"\n        # Tu código aquí\n        pass\n    \n    def validate(self, df: pd.DataFrame) -> Dict:\n        \"\"\"\n        Valida DataFrame contra todas las reglas\n        \n        Returns:\n            Dict con:\n            - total_records: int\n            - violations_by_rule: Dict[str, int]\n            - failed_records: List[int]  # indices\n            - quality_score: float (0-100)\n        \"\"\"\n        # Tu código aquí\n        pass\n\n# Ejemplo de uso\nvalidator = DataQualityValidator()\n\n# Agregar reglas\nvalidator.add_rule(ValidationRule(\n    name='amount_positive',\n    condition=lambda df: df['amount'] > 0,\n    severity=Severity.ERROR,\n    message='Amount must be positive'\n))\n\nvalidator.add_rule(ValidationRule(\n    name='email_format',\n    condition=lambda df: df['email'].str.contains('@'),\n    severity=Severity.WARNING,\n    message='Invalid email format'\n))\n\n# Validar\ndf = pd.read_csv('incoming_data.csv')\nresult = validator.validate(df)\nprint(result)",
+      "knowledge": [
+        {
+          "concept": "Callable Type Hints y Lambda Functions",
+          "description": "Callable permite pasar funciones como parámetros con type hints. Lambdas son funciones anónimas de una línea. Esenciales para sistemas configurables.",
+          "syntax": "from typing import Callable\n\ndef apply_rule(data, func: Callable[[int], bool]):\n    return func(data)\n\n# Lambda\nrule = lambda x: x > 0",
+          "example": "from typing import Callable\nimport pandas as pd\n\nclass Rule:\n    def __init__(self, name: str, check: Callable[[pd.DataFrame], pd.Series]):\n        self.name = name\n        self.check = check\n    \n    def validate(self, df: pd.DataFrame) -> pd.Series:\n        return self.check(df)\n\n# Uso con lambda\nrule1 = Rule('positive', lambda df: df['amount'] > 0)\nrule2 = Rule('not_null', lambda df: df['name'].notna())\n\ndf = pd.DataFrame({'amount': [10, -5, 20], 'name': ['A', None, 'C']})\nprint(rule1.validate(df))  # [True, False, True]\nprint(rule2.validate(df))  # [True, False, True]",
+          "output": "0     True\n1    False\n2     True\nName: amount, dtype: bool\n\n0     True\n1    False\n2     True\nName: name, dtype: bool",
+          "note": "Callable[[Input], Output] especifica el tipo de función. Lambda solo para funciones simples de 1 línea - para lógica compleja usa def."
+        },
+        {
+          "concept": "Enum para Constantes Tipo-Safe",
+          "description": "Enum crea conjuntos de constantes relacionadas con type safety. Mejor que usar strings/ints mágicos. Previene typos y mejora autocomplete.",
+          "syntax": "from enum import Enum\n\nclass Status(Enum):\n    PENDING = 1\n    ACTIVE = 2\n    DONE = 3",
+          "example": "from enum import Enum\n\nclass Severity(Enum):\n    WARNING = 1\n    ERROR = 2\n    CRITICAL = 3\n\nclass Validation:\n    def __init__(self, message: str, severity: Severity):\n        self.message = message\n        self.severity = severity\n\n# Uso - Type-safe y con autocomplete\nv1 = Validation('Missing field', Severity.ERROR)\nv2 = Validation('Deprecated field', Severity.WARNING)\n\n# Comparación\nif v1.severity == Severity.ERROR:\n    raise Exception(v1.message)\n\n# Acceso al valor\nprint(v1.severity.value)  # 2\nprint(v1.severity.name)   # 'ERROR'",
+          "output": "2\nERROR",
+          "note": "Enum previene typos (Severity.EROR daría error). Mejor que usar strings 'error', 'warning' que son propensos a errores."
+        },
+        {
+          "concept": "Boolean Indexing y Vectorización en Pandas",
+          "description": "Boolean indexing permite filtrar DataFrames con condiciones. Operaciones vectorizadas son 100x más rápidas que loops. Crítico para performance con datos grandes.",
+          "syntax": "# Boolean indexing\nfiltered = df[df['amount'] > 100]\n\n# Multiple conditions\nfiltered = df[(df['amount'] > 100) & (df['status'] == 'active')]",
+          "example": "import pandas as pd\n\ndf = pd.DataFrame({\n    'amount': [100, -50, 200, 300],\n    'email': ['a@x.com', 'invalid', 'b@x.com', 'c@x.com']\n})\n\n# Validación vectorizada (rápida)\nvalid_amount = df['amount'] > 0\nvalid_email = df['email'].str.contains('@')\n\n# Combinar condiciones\nall_valid = valid_amount & valid_email\n\nprint(valid_amount)\nprint(all_valid)\nprint(f\"Records válidos: {all_valid.sum()}\")\nprint(f\"Records inválidos: {(~all_valid).sum()}\")",
+          "output": "0     True\n1    False\n2     True\n3     True\nName: amount, dtype: bool\n\n0     True\n1    False\n2     True\n3     True\ndtype: bool\n\nRecords válidos: 3\nRecords inválidos: 1",
+          "note": "~ invierte boolean (NOT). & es AND, | es OR. SIEMPRE usa paréntesis: (cond1) & (cond2). Vectorización es 100x+ más rápida que loops."
+        },
+        {
+          "concept": "List Comprehension con Filtering",
+          "description": "List comprehensions son la forma pythonic de transformar y filtrar listas. Más rápidas y legibles que loops tradicionales.",
+          "syntax": "# Básica\nresult = [x * 2 for x in numbers]\n\n# Con filtro\nresult = [x * 2 for x in numbers if x > 0]\n\n# Con condicional\nresult = [x if x > 0 else 0 for x in numbers]",
+          "example": "# Caso de uso: agregar índices de filas con errores\ndata = [10, -5, 20, -3, 30]\n\n# Forma 1: Loop tradicional (verbose)\nerror_indices = []\nfor i, value in enumerate(data):\n    if value < 0:\n        error_indices.append(i)\n\n# Forma 2: List comprehension (pythonic)\nerror_indices = [i for i, value in enumerate(data) if value < 0]\n\nprint(error_indices)  # [1, 3]\n\n# Ejemplo complejo: Validación con detalles\nvalidations = [\n    {'index': i, 'value': val, 'error': 'negative'}\n    for i, val in enumerate(data)\n    if val < 0\n]\n\nprint(validations)",
+          "output": "[1, 3]\n\n[{'index': 1, 'value': -5, 'error': 'negative'},\n {'index': 3, 'value': -3, 'error': 'negative'}]",
+          "note": "List comprehensions son más rápidas y pythonic que loops. Para lógica compleja (>2 líneas), usa loop tradicional por legibilidad."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# DataFrame con datos problemáticos\ndf = pd.DataFrame({\n    'amount': [100, -50, 200, None],\n    'email': ['a@x.com', 'invalid', 'b@x.com', 'c@x.com'],\n    'age': [25, 30, -5, 40]\n})\n\n# Reglas\nvalidator.add_rule(Rule('amount_positive', \n                       lambda df: df['amount'] > 0, \n                       Severity.ERROR))",
+          "output": "# Resultado de validación:\n{\n  'total_records': 4,\n  'violations_by_rule': {\n    'amount_positive': 2,  # filas 1 y 3\n    'email_format': 1,     # fila 1\n    'age_valid': 1         # fila 2\n  },\n  'failed_records': [1, 2, 3],  # índices con al menos 1 error\n  'quality_score': 25.0  # solo 1/4 registros válidos\n}",
+          "explanation": "El validator aplica cada regla al DataFrame completo usando operaciones vectorizadas. Retorna resumen de violaciones y quality score."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Validar Regla:</strong><br>En <code>validate()</code> de Rule, simplemente llama la función:<br><code>return self.condition(df)</code><br><br>Esto retorna un boolean Series indicando qué filas cumplen la condición.",
+        "<strong>Pista 2 - Agregar Reglas al Validator:</strong><br>Mantén lista de reglas:<br><code>self.rules.append(rule)</code><br><br>En <code>validate()</code>, itera sobre todas las reglas y aplícalas.",
+        "<strong>Pista 3 - Calcular Quality Score:</strong><br>Para cada regla, cuenta violaciones:<br><code>violations = (~rule.validate(df)).sum()</code><br><br>Quality score = % de registros sin violaciones:<br><code>valid_records = len(df) - len(failed_records)<br>score = (valid_records / len(df)) * 100</code>"
+      ],
+      "testCases": [
+        {
+          "description": "Debe detectar todas las violaciones",
+          "assertion": "result['violations_by_rule']['amount_positive'] == 2"
+        },
+        {
+          "description": "Debe calcular quality score correctamente",
+          "assertion": "result['quality_score'] == 25.0"
+        }
+      ]
+    },
+    {
+      "id": "python_006",
+      "title": "Distributed Data Processing Simulation",
+      "category": "python",
+      "difficulty": "senior",
+      "description": "Simula operaciones de procesamiento distribuido tipo Spark usando multiprocessing y particiones de datos.",
+      "timeLimit": 50,
+      "dataset": "large_logs.csv",
+      "instructions": "Implementa un sistema que simule procesamiento distribuido:\n1. Divide datos en N particiones (simula Spark partitions)\n2. Procesa cada partición en paralelo con multiprocessing\n3. Implementa map(), filter(), reduce() distribuidos\n4. Maneja agregaciones por clave (groupByKey, reduceByKey)\n5. Optimiza para minimizar shuffling de datos\n6. Retorna resultados combinados de todas las particiones\n\nDebe procesar 10M registros usando todos los CPU cores disponibles.",
+      "starterCode": "from multiprocessing import Pool, cpu_count\nfrom typing import List, Tuple, Callable, Any\nfrom functools import reduce\nimport csv\n\nclass DistributedProcessor:\n    def __init__(self, num_partitions: int = None):\n        self.num_partitions = num_partitions or cpu_count()\n    \n    def partition_data(self, data: List[Any]) -> List[List[Any]]:\n        \"\"\"\n        Divide datos en N particiones balanceadas\n        Similar a Spark repartition()\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def map_partitions(self, data: List[Any], \n                       map_func: Callable) -> List[Any]:\n        \"\"\"\n        Aplica función a cada partición en paralelo\n        Similar a Spark mapPartitions()\n        \n        Args:\n            data: Lista de datos a procesar\n            map_func: Función que recibe una partición y retorna resultados\n        \n        Returns:\n            Lista con todos los resultados combinados\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def reduce_by_key(self, pairs: List[Tuple[Any, Any]], \n                      reduce_func: Callable) -> dict:\n        \"\"\"\n        Agrupa por clave y reduce valores\n        Similar a Spark reduceByKey()\n        \n        Args:\n            pairs: Lista de tuplas (key, value)\n            reduce_func: Función de reducción (ej: lambda a,b: a+b)\n        \n        Returns:\n            Dict con resultados agregados por clave\n        \"\"\"\n        # Tu código aquí\n        pass\n\n# Ejemplo de uso\nprocessor = DistributedProcessor(num_partitions=4)\n\n# Cargar datos\nwith open('large_logs.csv') as f:\n    data = list(csv.DictReader(f))\n\n# Map: Extraer (user_id, amount)\ndef extract_pairs(partition):\n    return [(row['user_id'], float(row['amount'])) \n            for row in partition]\n\npairs = processor.map_partitions(data, extract_pairs)\n\n# Reduce: Sumar por user_id\nresult = processor.reduce_by_key(pairs, lambda a, b: a + b)\nprint(result)",
+      "knowledge": [
+        {
+          "concept": "Multiprocessing Pool - Paralelización CPU-Bound",
+          "description": "multiprocessing.Pool permite ejecutar funciones en paralelo usando múltiples procesos. Ideal para tareas CPU-intensive. Cada proceso tiene su propia memoria (no comparten variables).",
+          "syntax": "from multiprocessing import Pool\n\nwith Pool(processes=4) as pool:\n    results = pool.map(function, data)\n    # o\n    results = pool.starmap(function, list_of_args)",
+          "example": "from multiprocessing import Pool\nimport time\n\ndef process_chunk(numbers):\n    \"\"\"Procesa un chunk de datos\"\"\"\n    return sum(x ** 2 for x in numbers)\n\n# Data dividida en chunks\ndata = [[1,2,3], [4,5,6], [7,8,9], [10,11,12]]\n\n# Secuencial (lento)\nstart = time.time()\nresults_seq = [process_chunk(chunk) for chunk in data]\nprint(f\"Secuencial: {time.time() - start:.2f}s\")\n\n# Paralelo (rápido)\nstart = time.time()\nwith Pool(processes=4) as pool:\n    results_par = pool.map(process_chunk, data)\nprint(f\"Paralelo: {time.time() - start:.2f}s\")\nprint(results_par)  # [14, 77, 194, 365]",
+          "output": "Secuencial: 0.02s\nParalelo: 0.01s\n[14, 77, 194, 365]",
+          "note": "Pool crea procesos pesados (no threads). Útil para CPU-bound tasks. Para I/O-bound usa threading o asyncio. Overhead de crear procesos - no útil para tareas muy pequeñas."
+        },
+        {
+          "concept": "Data Partitioning Strategy - Minimizar Shuffle",
+          "description": "Particionar datos eficientemente minimiza data shuffle (movimiento de datos entre particiones). Key-based partitioning asegura que mismas keys vayan a misma partición.",
+          "syntax": "# Round-robin partitioning (simple)\npartition_id = index % num_partitions\n\n# Hash-based partitioning (por clave)\npartition_id = hash(key) % num_partitions",
+          "example": "# Mal enfoque: Random partitioning\nimport random\ndef bad_partition(data, n_parts):\n    parts = [[] for _ in range(n_parts)]\n    for item in data:\n        parts[random.randint(0, n_parts-1)].append(item)\n    return parts\n\n# Problema: Misma key en múltiples particiones\ndata = [('A',1), ('B',2), ('A',3), ('B',4)]\nparts = bad_partition(data, 2)\nprint(\"Bad:\", parts)\n# [('A',1), ('B',4)]  # Partition 0\n# [('B',2), ('A',3)]  # Partition 1\n# A y B están en ambas particiones - requiere shuffle!\n\n# Buen enfoque: Hash-based partitioning\ndef good_partition(data, n_parts):\n    parts = [[] for _ in range(n_parts)]\n    for key, val in data:\n        partition_id = hash(key) % n_parts\n        parts[partition_id].append((key, val))\n    return parts\n\nparts = good_partition(data, 2)\nprint(\"Good:\", parts)\n# [('A',1), ('A',3)]  # Partition 0\n# [('B',2), ('B',4)]  # Partition 1\n# Cada key en UNA sola partición - no shuffle necesario!",
+          "output": "Bad: [[('A', 1), ('B', 4)], [('B', 2), ('A', 3)]]\nGood: [[('A', 1), ('A', 3)], [('B', 2), ('B', 4)]]",
+          "note": "Hash partitioning asegura que reduce_by_key se pueda hacer localmente en cada partición sin shuffle. Crítico para performance en big data."
+        },
+        {
+          "concept": "functools.reduce - Agregación Recursiva",
+          "description": "reduce() aplica función binaria acumulativamente a items de un iterable. Esencial para agregaciones tipo sum, product, concatenation.",
+          "syntax": "from functools import reduce\n\nresult = reduce(function, iterable, initial_value)",
+          "example": "from functools import reduce\n\n# Ejemplo 1: Sum\nnumbers = [1, 2, 3, 4, 5]\ntotal = reduce(lambda a, b: a + b, numbers)\nprint(f\"Sum: {total}\")  # 15\n\n# Ejemplo 2: Product\nproduct = reduce(lambda a, b: a * b, numbers)\nprint(f\"Product: {product}\")  # 120\n\n# Ejemplo 3: Merge dicts (común en reduce_by_key)\ndicts = [\n    {'A': 1, 'B': 2},\n    {'A': 3, 'C': 4},\n    {'B': 5, 'C': 6}\n]\n\ndef merge_dicts(d1, d2):\n    result = d1.copy()\n    for key, val in d2.items():\n        result[key] = result.get(key, 0) + val\n    return result\n\nmerged = reduce(merge_dicts, dicts)\nprint(f\"Merged: {merged}\")  # {'A': 4, 'B': 7, 'C': 10}",
+          "output": "Sum: 15\nProduct: 120\nMerged: {'A': 4, 'B': 7, 'C': 10}",
+          "note": "reduce es útil cuando necesitas un solo valor acumulado. Para agregaciones por grupo, usa defaultdict o Counter. Tercer parámetro es valor inicial opcional."
+        },
+        {
+          "concept": "collections.defaultdict - Auto-Inicialización",
+          "description": "defaultdict crea valores por defecto automáticamente cuando accedes a keys inexistentes. Perfecto para agregaciones y grouping sin verificar si key existe.",
+          "syntax": "from collections import defaultdict\n\n# Con int (default: 0)\ncounts = defaultdict(int)\n\n# Con list (default: [])\ngroups = defaultdict(list)",
+          "example": "from collections import defaultdict\n\n# Problema: Dict normal requiere verificar keys\nregular_dict = {}\nfor key, val in [('A',1), ('B',2), ('A',3)]:\n    if key not in regular_dict:\n        regular_dict[key] = 0\n    regular_dict[key] += val\n\n# Solución: defaultdict lo hace automático\ndefault_dict = defaultdict(int)\nfor key, val in [('A',1), ('B',2), ('A',3)]:\n    default_dict[key] += val  # No need to check!\n\nprint(dict(default_dict))  # {'A': 4, 'B': 2}\n\n# Grouping con defaultdict(list)\ngroups = defaultdict(list)\nfor key, val in [('A',1), ('B',2), ('A',3), ('B',4)]:\n    groups[key].append(val)\n\nprint(dict(groups))  # {'A': [1,3], 'B': [2,4]}",
+          "output": "{'A': 4, 'B': 2}\n{'A': [1, 3], 'B': [2, 4]}",
+          "note": "defaultdict(int) para contadores/sumas. defaultdict(list) para grouping. defaultdict(set) para unique items por grupo. Más limpio que if key not in dict."
+        },
+        {
+          "concept": "Chunking y Batch Processing",
+          "description": "Procesar datos en chunks/batches reduce memory overhead y permite paralelización. Divide-and-conquer approach.",
+          "syntax": "def chunks(lst, n):\n    \"\"\"Divide lista en chunks de tamaño n\"\"\"\n    for i in range(0, len(lst), n):\n        yield lst[i:i + n]",
+          "example": "# Chunking básico\ndef chunks(lst, n):\n    \"\"\"Divide en chunks de tamaño n\"\"\"\n    for i in range(0, len(lst), n):\n        yield lst[i:i + n]\n\ndata = list(range(10))\nfor chunk in chunks(data, 3):\n    print(chunk)\n\n# Output:\n# [0, 1, 2]\n# [3, 4, 5]\n# [6, 7, 8]\n# [9]\n\n# Batch processing con multiprocessing\nfrom multiprocessing import Pool\n\ndef process_batch(batch):\n    return sum(batch)\n\ndata = list(range(1000000))\nbatches = list(chunks(data, 10000))  # 100 batches\n\nwith Pool(4) as pool:\n    results = pool.map(process_batch, batches)\n\ntotal = sum(results)\nprint(f\"Total: {total}\")",
+          "output": "[0, 1, 2]\n[3, 4, 5]\n[6, 7, 8]\n[9]\nTotal: 499999500000",
+          "note": "Chunk size es trade-off: muy pequeño = mucho overhead, muy grande = poco paralelismo. Regla general: num_chunks = 2-4x num_cores."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# Dataset: 10M transacciones\ndata = [\n  {'user_id': 'U1', 'amount': 100},\n  {'user_id': 'U2', 'amount': 200},\n  {'user_id': 'U1', 'amount': 150},\n  # ... 10M rows\n]\n\n# Procesar con 8 cores\nprocessor = DistributedProcessor(num_partitions=8)",
+          "output": "# Procesamiento:\nPartition 0: Processing 1,250,000 records\nPartition 1: Processing 1,250,000 records\n...\nPartition 7: Processing 1,250,000 records\n\n# Resultado final:\n{\n  'U1': 15000000,\n  'U2': 22000000,\n  'U3': 18000000,\n  # ... totals por user\n}\n\n# Tiempo: 15s (vs 120s secuencial)\n# Speedup: 8x con 8 cores",
+          "explanation": "Los datos se dividen en 8 particiones. Cada partición se procesa en paralelo en un core diferente. Las agregaciones por user_id se hacen localmente en cada partición (sin shuffle), luego se combinan los resultados."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Particionar Datos:</strong><br>Divide en chunks iguales:<br><code>chunk_size = len(data) // self.num_partitions<br>partitions = [data[i:i+chunk_size] for i in range(0, len(data), chunk_size)]</code><br><br>Ajusta última partición para incluir remainder.",
+        "<strong>Pista 2 - Map Paralelo:</strong><br>Usa Pool.map para procesar particiones en paralelo:<br><code>with Pool(self.num_partitions) as pool:<br>    results = pool.map(map_func, partitions)<br>return [item for sublist in results for item in sublist]  # Flatten</code>",
+        "<strong>Pista 3 - Reduce by Key:</strong><br>Usa defaultdict para agrupar:<br><code>from collections import defaultdict<br>result = defaultdict(int)<br>for key, value in pairs:<br>    result[key] = reduce_func(result[key], value)<br>return dict(result)</code>"
+      ],
+      "testCases": [
+        {
+          "description": "Debe dividir datos equitativamente",
+          "assertion": "abs(len(partitions[0]) - len(partitions[1])) <= 1"
+        },
+        {
+          "description": "Debe reducir correctamente por clave",
+          "assertion": "result['U1'] == expected_sum_u1"
+        }
+      ]
+    },
+    {
+      "id": "python_007",
+      "title": "Real-time Streaming Aggregations con Time Windows",
+      "category": "python",
+      "difficulty": "senior",
+      "description": "Implementa agregaciones en tiempo real sobre streams de datos con ventanas de tiempo (tumbling, sliding, session windows).",
+      "timeLimit": 55,
+      "dataset": "event_stream.json",
+      "instructions": "Crea un sistema de procesamiento de streams que:\n1. Procese eventos con timestamps en tiempo real\n2. Implemente Tumbling Windows (ventanas fijas no-overlapping)\n3. Implemente Sliding Windows (ventanas overlapping)\n4. Implemente Session Windows (basadas en gaps de inactividad)\n5. Calcule agregaciones (count, sum, avg, min, max) por ventana\n6. Maneje eventos out-of-order y late arrivals\n7. Emita resultados cuando las ventanas se cierren\n\nDebe procesar 100k eventos/segundo.",
+      "starterCode": "from datetime import datetime, timedelta\nfrom typing import List, Dict, Callable, Any\nfrom collections import deque, defaultdict\nimport json\n\nclass TimeWindow:\n    def __init__(self, start: datetime, end: datetime):\n        self.start = start\n        self.end = end\n        self.events = []\n    \n    def add_event(self, event: Dict):\n        \"\"\"Agrega evento a esta ventana\"\"\"\n        self.events.append(event)\n    \n    def is_closed(self, current_time: datetime, \n                  allowed_lateness: timedelta) -> bool:\n        \"\"\"Verifica si ventana está cerrada (no acepta más eventos)\"\"\"\n        # Tu código aquí\n        pass\n    \n    def compute_aggregations(self) -> Dict:\n        \"\"\"Calcula agregaciones de esta ventana\"\"\"\n        # Tu código aquí\n        pass\n\nclass StreamProcessor:\n    def __init__(self, window_size: timedelta, \n                 slide_interval: timedelta = None,\n                 allowed_lateness: timedelta = timedelta(seconds=5)):\n        \"\"\"\n        Args:\n            window_size: Tamaño de ventana (ej: 1 minuto)\n            slide_interval: Intervalo de slide (None = tumbling, < window_size = sliding)\n            allowed_lateness: Cuánto tiempo esperar eventos late\n        \"\"\"\n        self.window_size = window_size\n        self.slide_interval = slide_interval or window_size\n        self.allowed_lateness = allowed_lateness\n        self.windows: List[TimeWindow] = []\n        self.current_watermark = None\n    \n    def process_event(self, event: Dict) -> List[Dict]:\n        \"\"\"\n        Procesa un evento y retorna resultados de ventanas cerradas\n        \n        Args:\n            event: Dict con 'timestamp' y otros campos\n        \n        Returns:\n            Lista de resultados de ventanas que se cerraron\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def assign_to_windows(self, event: Dict) -> List[TimeWindow]:\n        \"\"\"Asigna evento a ventana(s) apropiada(s)\"\"\"\n        # Tu código aquí\n        pass\n    \n    def update_watermark(self, event_time: datetime):\n        \"\"\"Actualiza watermark (tiempo hasta el cual no esperamos más eventos)\"\"\"\n        # Tu código aquí\n        pass\n    \n    def close_windows(self) -> List[Dict]:\n        \"\"\"Cierra ventanas que pasaron el watermark + allowed_lateness\"\"\"\n        # Tu código aquí\n        pass\n\n# Ejemplo de uso\nprocessor = StreamProcessor(\n    window_size=timedelta(minutes=1),\n    slide_interval=timedelta(seconds=30),  # Sliding window\n    allowed_lateness=timedelta(seconds=5)\n)\n\n# Simular stream de eventos\nevents = [\n    {'timestamp': '2024-01-01 10:00:05', 'user_id': 'U1', 'amount': 100},\n    {'timestamp': '2024-01-01 10:00:35', 'user_id': 'U2', 'amount': 200},\n    {'timestamp': '2024-01-01 10:01:05', 'user_id': 'U1', 'amount': 150},\n]\n\nfor event in events:\n    event['timestamp'] = datetime.fromisoformat(event['timestamp'])\n    results = processor.process_event(event)\n    \n    for result in results:\n        print(f\"Window closed: {result}\")",
+      "knowledge": [
+        {
+          "concept": "Tumbling vs Sliding vs Session Windows",
+          "description": "Tumbling: ventanas fijas no-overlapping. Sliding: ventanas overlapping. Session: se cierran tras gap de inactividad. Cada tipo útil para diferentes análisis.",
+          "syntax": "# Tumbling: [0-60s], [60-120s], [120-180s]\n# Cada evento en UNA ventana\n\n# Sliding: [0-60s], [30-90s], [60-120s]\n# Eventos pueden estar en MÚLTIPLES ventanas\n\n# Session: [0-45s], [60-95s] (gap: 15s)\n# Ventanas dinámicas basadas en actividad",
+          "example": "from datetime import datetime, timedelta\n\n# Eventos con timestamps\nevents = [\n    {'time': '10:00:05', 'value': 1},\n    {'time': '10:00:35', 'value': 2},\n    {'time': '10:01:05', 'value': 3},\n    {'time': '10:01:35', 'value': 4},\n]\n\n# TUMBLING WINDOW (60s, no overlap)\n# Window 1: [10:00:00 - 10:01:00] → events: 1, 2\n# Window 2: [10:01:00 - 10:02:00] → events: 3, 4\n\nprint(\"Tumbling:\")\nprint(\"W1: [10:00:00-10:01:00] → sum=3\")\nprint(\"W2: [10:01:00-10:02:00] → sum=7\")\n\n# SLIDING WINDOW (60s window, 30s slide)\n# Window 1: [10:00:00 - 10:01:00] → events: 1, 2\n# Window 2: [10:00:30 - 10:01:30] → events: 2, 3\n# Window 3: [10:01:00 - 10:02:00] → events: 3, 4\n\nprint(\"\\nSliding:\")\nprint(\"W1: [10:00:00-10:01:00] → sum=3\")\nprint(\"W2: [10:00:30-10:01:30] → sum=5\")  # evento 2 y 3\nprint(\"W3: [10:01:00-10:02:00] → sum=7\")",
+          "output": "Tumbling:\nW1: [10:00:00-10:01:00] → sum=3\nW2: [10:01:00-10:02:00] → sum=7\n\nSliding:\nW1: [10:00:00-10:01:00] → sum=3\nW2: [10:00:30-10:01:30] → sum=5\nW3: [10:01:00-10:02:00] → sum=7",
+          "note": "Tumbling: menos overhead, sin duplicados. Sliding: más granularidad, eventos procesados múltiples veces. Session: para análisis de comportamiento user."
+        },
+        {
+          "concept": "Watermarks y Late Events",
+          "description": "Watermark = timestamp hasta el cual no esperamos eventos más viejos. Permite cerrar ventanas. Late events son eventos que llegan después del watermark pero dentro de allowed_lateness.",
+          "syntax": "watermark = max_event_time - allowed_lateness\n\n# Ventana cierra cuando:\nwindow.end + allowed_lateness < watermark",
+          "example": "from datetime import datetime, timedelta\n\n# Stream de eventos (pueden llegar desordenados)\nevents = [\n    {'time': datetime(2024,1,1,10,0,5), 'val': 1},   # 10:00:05\n    {'time': datetime(2024,1,1,10,0,35), 'val': 2},  # 10:00:35\n    {'time': datetime(2024,1,1,10,1,10), 'val': 3},  # 10:01:10\n    {'time': datetime(2024,1,1,10,0,50), 'val': 4},  # 10:00:50 (LATE!)\n]\n\nallowed_lateness = timedelta(seconds=10)\nwindow_end = datetime(2024,1,1,10,1,0)  # Window: [10:00:00 - 10:01:00]\n\n# Procesamiento:\nwatermark = datetime(2024,1,1,10,0,0)\n\nfor event in events:\n    watermark = max(watermark, event['time'])\n    \n    # Evento 4 llega tarde pero dentro de allowed_lateness\n    if event['time'] >= window_end - allowed_lateness:\n        print(f\"Event {event['val']} accepted (late but ok)\")\n    \n    # Cerrar ventana si: end + allowed_lateness < watermark\n    if window_end + allowed_lateness < watermark:\n        print(f\"Window [10:00:00-10:01:00] closed at watermark {watermark}\")",
+          "output": "Event 1 accepted (late but ok)\nEvent 2 accepted (late but ok)\nEvent 3 accepted (late but ok)\nEvent 4 accepted (late but ok)\nWindow [10:00:00-10:01:00] closed at watermark 2024-01-01 10:01:10",
+          "note": "Watermark evita esperar indefinidamente por late events. Allowed lateness es trade-off: más tiempo = más completo pero más latencia. Típicamente 1-10 segundos."
+        },
+        {
+          "concept": "collections.deque - Queue de Alta Performance",
+          "description": "deque (double-ended queue) permite append/pop eficientes en ambos extremos (O(1)). Perfecto para sliding windows y buffers.",
+          "syntax": "from collections import deque\n\nq = deque(maxlen=5)  # Tamaño máximo\nq.append(1)  # Agrega a derecha\nq.appendleft(0)  # Agrega a izquierda\nq.pop()  # Remueve de derecha\nq.popleft()  # Remueve de izquierda",
+          "example": "from collections import deque\n\n# Problema: Mantener últimos N elementos (sliding window)\nwindow = deque(maxlen=3)  # Solo mantiene últimos 3\n\nfor i in range(6):\n    window.append(i)\n    print(f\"Add {i}: window = {list(window)}, avg = {sum(window)/len(window):.1f}\")\n\n# Output muestra cómo se desplazan los elementos",
+          "output": "Add 0: window = [0], avg = 0.0\nAdd 1: window = [0, 1], avg = 0.5\nAdd 2: window = [0, 1, 2], avg = 1.0\nAdd 3: window = [1, 2, 3], avg = 2.0\nAdd 4: window = [2, 3, 4], avg = 3.0\nAdd 5: window = [3, 4, 5], avg = 4.0",
+          "note": "deque es más eficiente que list para operaciones en extremos. maxlen auto-elimina elementos viejos. Útil para sliding windows, rate limiting, buffers circulares."
+        },
+        {
+          "concept": "datetime y timedelta Operations",
+          "description": "datetime permite manipular fechas/tiempos. timedelta representa duraciones. Esenciales para time-windowing.",
+          "syntax": "from datetime import datetime, timedelta\n\nnow = datetime.now()\nlater = now + timedelta(hours=1)\ndiff = later - now  # Returns timedelta",
+          "example": "from datetime import datetime, timedelta\n\n# Crear ventanas de tiempo\nstart = datetime(2024, 1, 1, 10, 0, 0)\nwindow_size = timedelta(minutes=5)\n\nwindows = []\nfor i in range(3):\n    window_start = start + (i * window_size)\n    window_end = window_start + window_size\n    windows.append((window_start, window_end))\n    print(f\"Window {i}: [{window_start.time()} - {window_end.time()}]\")\n\n# Verificar si evento cae en ventana\nevent_time = datetime(2024, 1, 1, 10, 3, 30)\n\nfor i, (ws, we) in enumerate(windows):\n    if ws <= event_time < we:\n        print(f\"\\nEvent {event_time.time()} belongs to Window {i}\")",
+          "output": "Window 0: [10:00:00 - 10:05:00]\nWindow 1: [10:05:00 - 10:10:00]\nWindow 2: [10:10:00 - 10:15:00]\n\nEvent 10:03:30 belongs to Window 0",
+          "note": "datetime comparisons usan <=, >=, <, >. timedelta soporta +, -, *, //. Para timestamps de eventos, siempre usa datetime objects no strings."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# Stream de eventos con timestamps\nevents = [\n    {'timestamp': '2024-01-01 10:00:05', 'amount': 100},\n    {'timestamp': '2024-01-01 10:00:35', 'amount': 200},\n    {'timestamp': '2024-01-01 10:00:50', 'amount': 150},  # late arrival\n    {'timestamp': '2024-01-01 10:01:05', 'amount': 300},\n]\n\n# Tumbling window: 60s\nprocessor = StreamProcessor(window_size=timedelta(seconds=60))",
+          "output": "# Resultados:\nWindow closed: {\n  'window': '[2024-01-01 10:00:00 - 2024-01-01 10:01:00]',\n  'count': 3,\n  'sum': 450,\n  'avg': 150.0,\n  'min': 100,\n  'max': 200\n}\n\nWindow closed: {\n  'window': '[2024-01-01 10:01:00 - 2024-01-01 10:02:00]',\n  'count': 1,\n  'sum': 300,\n  'avg': 300.0,\n  'min': 300,\n  'max': 300\n}",
+          "explanation": "El evento de 10:00:50 llega tarde pero se incluye en la primera ventana porque está dentro del allowed_lateness. Cuando llega el evento de 10:01:05, el watermark se actualiza y la primera ventana se cierra."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Asignar a Ventanas:</strong><br>Para tumbling window, calcula inicio:<br><code>window_start = event_time - (event_time - epoch) % window_size</code><br><br>Para sliding, crea múltiples ventanas con offsets.",
+        "<strong>Pista 2 - Watermark:</strong><br>Actualiza watermark con max event time visto:<br><code>self.current_watermark = max(self.current_watermark or epoch, event_time)</code><br><br>Ventana cierra cuando: <code>window.end + allowed_lateness < watermark</code>",
+        "<strong>Pista 3 - Agregaciones:</strong><br>Para cada ventana cerrada, calcula stats:<br><code>amounts = [e['amount'] for e in window.events]<br>return {<br>    'count': len(amounts),<br>    'sum': sum(amounts),<br>    'avg': sum(amounts) / len(amounts),<br>    'min': min(amounts),<br>    'max': max(amounts)<br>}</code>"
+      ],
+      "testCases": [
+        {
+          "description": "Debe incluir late events dentro de allowed_lateness",
+          "assertion": "window1_count == 3  # incluye evento late"
+        },
+        {
+          "description": "Debe cerrar ventanas después del watermark",
+          "assertion": "len(closed_windows) > 0"
+        }
+      ]
+    },
+    {
+      "id": "python_008",
+      "title": "Database Connection Pool y Batch Operations",
+      "category": "python",
+      "difficulty": "senior",
+      "description": "Implementa un connection pool para optimizar operaciones de base de datos con batch inserts, transactions, y retry logic.",
+      "timeLimit": 45,
+      "dataset": "records_to_insert.csv",
+      "instructions": "Crea un sistema de manejo de conexiones a BD que:\n1. Implemente connection pooling (reusabilidad de conexiones)\n2. Soporte batch inserts eficientes (múltiples rows en un query)\n3. Maneje transacciones con commit/rollback\n4. Implemente retry logic con exponential backoff\n5. Maneje concurrent connections thread-safe\n6. Registre métricas (connection usage, query performance)\n7. Implemente context managers para auto-cleanup\n\nDebe insertar 1M registros en <60 segundos.",
+      "starterCode": "import sqlite3\nimport threading\nfrom queue import Queue, Empty\nfrom typing import List, Dict, Any, Optional\nfrom contextlib import contextmanager\nimport time\nfrom functools import wraps\n\nclass ConnectionPool:\n    def __init__(self, database: str, pool_size: int = 5):\n        \"\"\"\n        Args:\n            database: Path a DB SQLite\n            pool_size: Número máximo de conexiones en pool\n        \"\"\"\n        self.database = database\n        self.pool_size = pool_size\n        self.pool: Queue = Queue(maxsize=pool_size)\n        self.lock = threading.Lock()\n        self._initialize_pool()\n    \n    def _initialize_pool(self):\n        \"\"\"Crea conexiones iniciales\"\"\"\n        # Tu código aquí\n        pass\n    \n    @contextmanager\n    def get_connection(self):\n        \"\"\"\n        Context manager para obtener conexión del pool\n        \n        Usage:\n            with pool.get_connection() as conn:\n                conn.execute(...)\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def close_all(self):\n        \"\"\"Cierra todas las conexiones en el pool\"\"\"\n        # Tu código aquí\n        pass\n\ndef retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):\n    \"\"\"\n    Decorator para retry con exponential backoff\n    \n    Args:\n        max_retries: Número máximo de reintentos\n        backoff_factor: Factor de multiplicación para delay (1s, 2s, 4s...)\n    \"\"\"\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            # Tu código aquí\n            pass\n        return wrapper\n    return decorator\n\nclass DatabaseManager:\n    def __init__(self, pool: ConnectionPool):\n        self.pool = pool\n        self.metrics = {\n            'total_queries': 0,\n            'total_inserts': 0,\n            'avg_query_time': 0.0\n        }\n    \n    @retry_on_failure(max_retries=3)\n    def batch_insert(self, table: str, records: List[Dict[str, Any]], \n                     batch_size: int = 1000) -> int:\n        \"\"\"\n        Inserta múltiples registros en batches\n        \n        Args:\n            table: Nombre de tabla\n            records: Lista de dicts con datos\n            batch_size: Tamaño de cada batch\n        \n        Returns:\n            Número total de registros insertados\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def execute_transaction(self, queries: List[str]) -> bool:\n        \"\"\"\n        Ejecuta múltiples queries en una transacción\n        Hace commit si todas pasan, rollback si alguna falla\n        \n        Args:\n            queries: Lista de SQL queries\n        \n        Returns:\n            True si transaction exitosa, False si falló\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def get_metrics(self) -> Dict:\n        \"\"\"Retorna métricas de uso\"\"\"\n        return self.metrics\n\n# Ejemplo de uso\npool = ConnectionPool('data.db', pool_size=5)\ndb_manager = DatabaseManager(pool)\n\n# Batch insert\nrecords = [\n    {'name': 'John', 'age': 30, 'email': 'john@example.com'},\n    {'name': 'Jane', 'age': 25, 'email': 'jane@example.com'},\n    # ... más registros\n]\n\ninserted = db_manager.batch_insert('users', records, batch_size=1000)\nprint(f\"Inserted {inserted} records\")\n\n# Transaction\nqueries = [\n    \"INSERT INTO accounts (user_id, balance) VALUES (1, 1000)\",\n    \"UPDATE accounts SET balance = balance - 100 WHERE user_id = 1\",\n    \"INSERT INTO transactions (user_id, amount) VALUES (1, -100)\"\n]\n\nsuccess = db_manager.execute_transaction(queries)\nprint(f\"Transaction: {'Success' if success else 'Failed'}\")\n\n# Métricas\nprint(db_manager.get_metrics())\n\npool.close_all()",
+      "knowledge": [
+        {
+          "concept": "Connection Pooling - Reusabilidad de Conexiones",
+          "description": "Connection pool mantiene un conjunto de conexiones reutilizables. Evita overhead de crear/cerrar conexiones para cada query. Crítico para aplicaciones con alta concurrencia.",
+          "syntax": "# Sin pool (ineficiente)\nfor query in queries:\n    conn = create_connection()  # COSTOSO\n    conn.execute(query)\n    conn.close()\n\n# Con pool (eficiente)\nfor query in queries:\n    conn = pool.get()  # RÁPIDO (reusa conexión)\n    conn.execute(query)\n    pool.return(conn)",
+          "example": "import sqlite3\nfrom queue import Queue\n\nclass SimplePool:\n    def __init__(self, db, size=3):\n        self.pool = Queue(maxsize=size)\n        for _ in range(size):\n            conn = sqlite3.connect(db, check_same_thread=False)\n            self.pool.put(conn)\n    \n    def get(self):\n        return self.pool.get()  # Bloquea si no hay conexiones disponibles\n    \n    def return_conn(self, conn):\n        self.pool.put(conn)\n\n# Uso\npool = SimplePool('test.db', size=3)\n\n# Thread 1\nconn = pool.get()\nconn.execute(\"SELECT * FROM users\")\npool.return_conn(conn)  # Devuelve al pool para reuso\n\n# Thread 2 puede reusar la misma conexión\nconn = pool.get()\nconn.execute(\"SELECT * FROM products\")\npool.return_conn(conn)",
+          "output": "# Sin pool:\n# 1000 queries = 1000 conexiones creadas = ~5 segundos\n\n# Con pool (5 conexiones):\n# 1000 queries = 5 conexiones reusadas = ~0.5 segundos\n# 10x más rápido!",
+          "note": "Pool size depende de workload. Muy pequeño = queries esperan. Muy grande = desperdicia memoria. Regla general: 2x número de cores."
+        },
+        {
+          "concept": "Context Managers (@contextmanager)",
+          "description": "Context managers manejan setup/cleanup automáticamente con 'with'. @contextmanager decorator permite crearlos con generators. Garantiza cleanup incluso si hay excepciones.",
+          "syntax": "from contextlib import contextmanager\n\n@contextmanager\ndef resource():\n    r = acquire_resource()  # Setup\n    try:\n        yield r  # Uso\n    finally:\n        release_resource(r)  # Cleanup (siempre ejecuta)",
+          "example": "from contextlib import contextmanager\nfrom queue import Queue\nimport sqlite3\n\nclass Pool:\n    def __init__(self):\n        self.pool = Queue()\n        for _ in range(3):\n            self.pool.put(sqlite3.connect(':memory:'))\n    \n    @contextmanager\n    def get_connection(self):\n        conn = self.pool.get()  # Obtiene conexión\n        try:\n            yield conn  # Provee conexión al bloque 'with'\n        finally:\n            self.pool.put(conn)  # SIEMPRE devuelve al pool\n\npool = Pool()\n\n# Uso - la conexión se devuelve automáticamente\nwith pool.get_connection() as conn:\n    conn.execute(\"CREATE TABLE users (id INTEGER, name TEXT)\")\n    conn.execute(\"INSERT INTO users VALUES (1, 'Alice')\")\n    # Si hay exception aquí, conexión IGUAL se devuelve al pool\n\nprint(\"Conexión devuelta al pool automáticamente\")",
+          "output": "Conexión devuelta al pool automáticamente",
+          "note": "Context managers garantizan cleanup incluso con exceptions. Más seguro que try/finally manual. Usa @contextmanager para crear custom managers fácilmente."
+        },
+        {
+          "concept": "Exponential Backoff - Retry Strategy",
+          "description": "Exponential backoff incrementa delay entre retries exponencialmente (1s, 2s, 4s, 8s...). Previene sobrecargar sistema que ya está fallando. Standard en producción.",
+          "syntax": "import time\n\nretries = 0\nmax_retries = 5\nbackoff = 1\n\nwhile retries < max_retries:\n    try:\n        operation()\n        break\n    except Exception:\n        time.sleep(backoff)\n        backoff *= 2  # Exponential\n        retries += 1",
+          "example": "import time\nfrom functools import wraps\n\ndef retry_exponential(max_retries=3, backoff_factor=2.0):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            retries = 0\n            delay = 1.0\n            \n            while retries < max_retries:\n                try:\n                    return func(*args, **kwargs)\n                except Exception as e:\n                    retries += 1\n                    if retries >= max_retries:\n                        raise  # Re-lanza exception en último retry\n                    \n                    print(f\"Retry {retries}/{max_retries} after {delay}s\")\n                    time.sleep(delay)\n                    delay *= backoff_factor\n        return wrapper\n    return decorator\n\n# Uso\n@retry_exponential(max_retries=4, backoff_factor=2.0)\ndef unreliable_api_call():\n    import random\n    if random.random() < 0.7:  # 70% chance de fallar\n        raise Exception(\"API error\")\n    return \"Success\"\n\nresult = unreliable_api_call()\nprint(result)",
+          "output": "Retry 1/4 after 1.0s\nRetry 2/4 after 2.0s\nSuccess\n\n# O si sigue fallando:\n# Retry 1/4 after 1.0s\n# Retry 2/4 after 2.0s\n# Retry 3/4 after 4.0s\n# Exception: API error",
+          "note": "Backoff previene 'retry storm' que empeora el problema. Usa jitter (random) para evitar thundering herd. Típico: max 3-5 retries con backoff 2x."
+        },
+        {
+          "concept": "Batch Operations - Minimizar Round-Trips",
+          "description": "Batch operations agrupan múltiples operaciones en un solo query. Reduce network overhead y locks. Puede ser 100x más rápido que inserts individuales.",
+          "syntax": "# Individual (lento)\nfor row in rows:\n    conn.execute(\"INSERT INTO t VALUES (?)\", (row,))\n\n# Batch (rápido)\nconn.executemany(\"INSERT INTO t VALUES (?)\", rows)",
+          "example": "import sqlite3\nimport time\n\nconn = sqlite3.connect(':memory:')\nconn.execute(\"CREATE TABLE users (id INTEGER, name TEXT)\")\n\ndata = [(i, f'User{i}') for i in range(10000)]\n\n# Método 1: Individual inserts (MUY LENTO)\nstart = time.time()\nfor id, name in data:\n    conn.execute(\"INSERT INTO users VALUES (?, ?)\", (id, name))\nconn.commit()\nprint(f\"Individual: {time.time() - start:.2f}s\")\n\n# Limpiar\nconn.execute(\"DELETE FROM users\")\n\n# Método 2: Batch con executemany (RÁPIDO)\nstart = time.time()\nconn.executemany(\"INSERT INTO users VALUES (?, ?)\", data)\nconn.commit()\nprint(f\"Batch: {time.time() - start:.2f}s\")\n\n# Método 3: Chunks de batches (ÓPTIMO)\nconn.execute(\"DELETE FROM users\")\nstart = time.time()\nbatch_size = 1000\nfor i in range(0, len(data), batch_size):\n    batch = data[i:i+batch_size]\n    conn.executemany(\"INSERT INTO users VALUES (?, ?)\", batch)\nconn.commit()\nprint(f\"Chunked: {time.time() - start:.2f}s\")",
+          "output": "Individual: 2.45s\nBatch: 0.08s\nChunked: 0.09s\n\n# Batch es ~30x más rápido!",
+          "note": "executemany es nativo y eficiente. Chunks previenen transacciones muy grandes. Batch size óptimo: 500-5000 registros dependiendo de tamaño de fila."
+        },
+        {
+          "concept": "Threading y Thread-Safety con Locks",
+          "description": "threading.Lock asegura que solo un thread acceda a recursos compartidos a la vez. Previene race conditions. Crítico para connection pools y shared state.",
+          "syntax": "import threading\n\nlock = threading.Lock()\n\nwith lock:  # Adquiere lock\n    # Critical section\n    shared_resource.modify()\n# Lock se libera automáticamente",
+          "example": "import threading\nfrom queue import Queue\nimport time\n\n# Sin lock - RACE CONDITION\nclass UnsafeCounter:\n    def __init__(self):\n        self.count = 0\n    \n    def increment(self):\n        temp = self.count\n        time.sleep(0.0001)  # Simula operación\n        self.count = temp + 1\n\n# Con lock - THREAD-SAFE\nclass SafeCounter:\n    def __init__(self):\n        self.count = 0\n        self.lock = threading.Lock()\n    \n    def increment(self):\n        with self.lock:  # Solo un thread a la vez\n            temp = self.count\n            time.sleep(0.0001)\n            self.count = temp + 1\n\n# Test\ndef test(counter, name):\n    threads = []\n    for _ in range(100):\n        t = threading.Thread(target=counter.increment)\n        threads.append(t)\n        t.start()\n    \n    for t in threads:\n        t.join()\n    \n    print(f\"{name}: {counter.count} (expected: 100)\")\n\ntest(UnsafeCounter(), \"Unsafe\")\ntest(SafeCounter(), \"Safe\")",
+          "output": "Unsafe: 87 (expected: 100)  # PERDIÓ UPDATES!\nSafe: 100 (expected: 100)    # CORRECTO",
+          "note": "Queue es thread-safe por defecto. Lock para proteger shared state. SIEMPRE usa 'with lock:' para auto-release. Locks pueden causar deadlocks si no se usan bien."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# Insertar 1M registros\nrecords = [\n    {'name': f'User{i}', 'age': i % 100, 'email': f'user{i}@test.com'}\n    for i in range(1000000)\n]\n\npool = ConnectionPool('data.db', pool_size=5)\ndb = DatabaseManager(pool)\n\ninserted = db.batch_insert('users', records, batch_size=5000)",
+          "output": "# Output:\nBatch 1/200: 5000 records inserted (0.2s)\nBatch 2/200: 5000 records inserted (0.2s)\n...\nBatch 200/200: 5000 records inserted (0.2s)\n\nTotal inserted: 1,000,000 records\nTotal time: 45.3 seconds\nAverage: 22,075 inserts/second\n\nMetrics:\n{\n  'total_queries': 200,\n  'total_inserts': 1000000,\n  'avg_query_time': 0.226,\n  'connection_pool_usage': 0.85\n}",
+          "explanation": "Los registros se insertan en batches de 5000 usando executemany(). El connection pool mantiene 5 conexiones reutilizables. Batch operations reducen el tiempo de 15+ minutos (individual) a ~45 segundos."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Inicializar Pool:</strong><br>Crea conexiones y agrégalas a Queue:<br><code>for _ in range(pool_size):<br>    conn = sqlite3.connect(database, check_same_thread=False)<br>    self.pool.put(conn)</code><br><br>check_same_thread=False permite usar en múltiples threads.",
+        "<strong>Pista 2 - Context Manager para Conexiones:</strong><br>Usa @contextmanager:<br><code>@contextmanager<br>def get_connection(self):<br>    conn = self.pool.get()  # Obtiene conexión<br>    try:<br>        yield conn<br>    finally:<br>        self.pool.put(conn)  # Siempre devuelve</code>",
+        "<strong>Pista 3 - Batch Insert:</strong><br>Divide en chunks y usa executemany:<br><code>for i in range(0, len(records), batch_size):<br>    batch = records[i:i+batch_size]<br>    placeholders = ', '.join(['?'] * len(batch[0]))<br>    values = [tuple(r.values()) for r in batch]<br>    conn.executemany(f'INSERT INTO {table} VALUES ({placeholders})', values)<br>conn.commit()</code>"
+      ],
+      "testCases": [
+        {
+          "description": "Debe insertar 1M registros en <60s",
+          "assertion": "execution_time < 60.0"
+        },
+        {
+          "description": "Debe reusar conexiones del pool",
+          "assertion": "metrics['connection_pool_usage'] > 0.5"
+        },
+        {
+          "description": "Debe hacer rollback en transacciones fallidas",
+          "assertion": "execute_transaction(['INSERT...', 'INVALID SQL']) == False"
+        }
+      ]
+    },
+    {
+      "id": "python_009",
+      "title": "Data Lineage Graph - BFS/DFS para Dependency Resolution",
+      "category": "python",
+      "difficulty": "senior",
+      "description": "Implementa sistema de data lineage usando grafos para rastrear dependencias entre datasets, detectar ciclos y calcular orden de ejecución.",
+      "timeLimit": 50,
+      "dataset": "pipeline_config.json",
+      "instructions": "Crea un sistema de data lineage que:\n1. Modele relaciones entre datasets como grafo dirigido\n2. Implemente BFS para encontrar camino más corto entre datasets\n3. Implemente DFS para detectar ciclos (dependencias circulares)\n4. Calcule orden topológico de ejecución (qué datasets procesar primero)\n5. Identifique datasets upstream/downstream de uno dado\n6. Calcule impacto de cambios (qué se afecta si cambio un dataset)\n7. Visualice árbol de dependencias\n\nEl sistema debe manejar grafos con 10,000+ nodos eficientemente.",
+      "starterCode": "from collections import deque, defaultdict\nfrom typing import List, Dict, Set, Optional, Tuple\nfrom enum import Enum\n\nclass NodeType(Enum):\n    SOURCE = 'source'          # Raw data\n    TRANSFORM = 'transform'    # Intermediate\n    TARGET = 'target'          # Final output\n\nclass DataNode:\n    def __init__(self, name: str, node_type: NodeType, metadata: Dict = None):\n        self.name = name\n        self.node_type = node_type\n        self.metadata = metadata or {}\n    \n    def __repr__(self):\n        return f\"DataNode({self.name}, {self.node_type.value})\"\n\nclass DataLineageGraph:\n    def __init__(self):\n        self.nodes: Dict[str, DataNode] = {}\n        self.edges: Dict[str, List[str]] = defaultdict(list)  # node -> [dependencies]\n        self.reverse_edges: Dict[str, List[str]] = defaultdict(list)  # node -> [dependents]\n    \n    def add_node(self, node: DataNode):\n        \"\"\"Agrega un dataset al grafo\"\"\"\n        # Tu código aquí\n        pass\n    \n    def add_edge(self, from_node: str, to_node: str):\n        \"\"\"\n        Agrega dependencia: to_node depende de from_node\n        \n        Args:\n            from_node: Dataset fuente\n            to_node: Dataset que consume from_node\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def bfs_shortest_path(self, start: str, end: str) -> Optional[List[str]]:\n        \"\"\"\n        Encuentra camino más corto entre dos datasets usando BFS\n        \n        Returns:\n            Lista de nodos en el camino, o None si no existe\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def has_cycle_dfs(self) -> Tuple[bool, Optional[List[str]]]:\n        \"\"\"\n        Detecta ciclos en el grafo usando DFS\n        \n        Returns:\n            (tiene_ciclo, ciclo_encontrado)\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def topological_sort(self) -> Optional[List[str]]:\n        \"\"\"\n        Calcula orden topológico de ejecución\n        \n        Returns:\n            Lista ordenada de datasets a ejecutar, o None si hay ciclo\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def get_upstream(self, node: str, max_depth: int = None) -> Set[str]:\n        \"\"\"\n        Obtiene todos los datasets upstream (dependencias)\n        \n        Args:\n            node: Dataset origen\n            max_depth: Profundidad máxima (None = infinito)\n        \n        Returns:\n            Set de nombres de datasets upstream\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def get_downstream(self, node: str, max_depth: int = None) -> Set[str]:\n        \"\"\"\n        Obtiene todos los datasets downstream (dependientes)\n        \n        Returns:\n            Set de nombres de datasets afectados\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def calculate_impact(self, node: str) -> Dict:\n        \"\"\"\n        Calcula impacto de cambiar un dataset\n        \n        Returns:\n            Dict con estadísticas de impacto\n        \"\"\"\n        # Tu código aquí\n        pass\n\n# Ejemplo de uso\ngraph = DataLineageGraph()\n\n# Agregar nodos\ngraph.add_node(DataNode('raw_sales', NodeType.SOURCE))\ngraph.add_node(DataNode('clean_sales', NodeType.TRANSFORM))\ngraph.add_node(DataNode('sales_agg', NodeType.TRANSFORM))\ngraph.add_node(DataNode('dashboard', NodeType.TARGET))\n\n# Agregar dependencias\ngraph.add_edge('raw_sales', 'clean_sales')\ngraph.add_edge('clean_sales', 'sales_agg')\ngraph.add_edge('sales_agg', 'dashboard')\n\n# Detectar ciclos\nhas_cycle, cycle = graph.has_cycle_dfs()\nprint(f\"Has cycle: {has_cycle}\")\n\n# Orden de ejecución\norder = graph.topological_sort()\nprint(f\"Execution order: {order}\")\n\n# Impacto de cambios\nimpact = graph.calculate_impact('clean_sales')\nprint(f\"Impact: {impact}\")",
+      "knowledge": [
+        {
+          "concept": "BFS - Breadth-First Search (Búsqueda en Anchura)",
+          "description": "BFS explora nivel por nivel. Encuentra camino más corto en grafos no ponderados. Usa cola (FIFO). Útil para: shortest path, nivel de distancia, conexión entre nodos.",
+          "syntax": "from collections import deque\n\ndef bfs(graph, start):\n    visited = set()\n    queue = deque([start])\n    \n    while queue:\n        node = queue.popleft()\n        if node not in visited:\n            visited.add(node)\n            queue.extend(graph[node])",
+          "example": "from collections import deque\n\n# Grafo de dependencias\ngraph = {\n    'A': ['B', 'C'],\n    'B': ['D'],\n    'C': ['D', 'E'],\n    'D': ['F'],\n    'E': ['F'],\n    'F': []\n}\n\ndef bfs_shortest_path(graph, start, end):\n    queue = deque([[start]])\n    visited = set()\n    \n    while queue:\n        path = queue.popleft()\n        node = path[-1]\n        \n        if node == end:\n            return path\n        \n        if node not in visited:\n            visited.add(node)\n            for neighbor in graph.get(node, []):\n                new_path = path + [neighbor]\n                queue.append(new_path)\n    \n    return None\n\npath = bfs_shortest_path(graph, 'A', 'F')\nprint(f\"Shortest path A→F: {path}\")\nprint(f\"Length: {len(path) - 1} steps\")",
+          "output": "Shortest path A→F: ['A', 'B', 'D', 'F']\nLength: 3 steps",
+          "note": "BFS garantiza camino más corto en grafos no ponderados. Complejidad: O(V+E). Usa más memoria que DFS pero encuentra camino óptimo."
+        },
+        {
+          "concept": "DFS - Depth-First Search (Búsqueda en Profundidad)",
+          "description": "DFS explora lo más profundo posible antes de backtrack. Usa stack (recursión o explícito). Útil para: detectar ciclos, componentes conectados, topological sort.",
+          "syntax": "def dfs(graph, node, visited=None):\n    if visited is None:\n        visited = set()\n    \n    visited.add(node)\n    for neighbor in graph[node]:\n        if neighbor not in visited:\n            dfs(graph, neighbor, visited)\n    \n    return visited",
+          "example": "# Detectar ciclo con DFS\ndef has_cycle(graph):\n    WHITE, GRAY, BLACK = 0, 1, 2\n    color = {node: WHITE for node in graph}\n    \n    def dfs(node):\n        color[node] = GRAY  # Visitando\n        \n        for neighbor in graph.get(node, []):\n            if color[neighbor] == GRAY:\n                # Back edge - ciclo detectado!\n                return True, [node, neighbor]\n            \n            if color[neighbor] == WHITE:\n                has_cycle, cycle = dfs(neighbor)\n                if has_cycle:\n                    return True, [node] + cycle\n        \n        color[node] = BLACK  # Terminado\n        return False, []\n    \n    for node in graph:\n        if color[node] == WHITE:\n            has_cycle_found, cycle = dfs(node)\n            if has_cycle_found:\n                return True, cycle\n    \n    return False, []\n\n# Sin ciclo\ngraph1 = {'A': ['B'], 'B': ['C'], 'C': []}\nprint(has_cycle(graph1))  # (False, [])\n\n# Con ciclo\ngraph2 = {'A': ['B'], 'B': ['C'], 'C': ['A']}\nprint(has_cycle(graph2))  # (True, ['A', 'B', 'C', 'A'])",
+          "output": "(False, [])\n(True, ['A', 'B', 'C', 'A'])",
+          "note": "DFS usa 3 colores: WHITE (no visitado), GRAY (visitando), BLACK (terminado). Si encuentras nodo GRAY = back edge = ciclo!"
+        },
+        {
+          "concept": "Topological Sort - Orden de Dependencias",
+          "description": "Ordena nodos de DAG (Directed Acyclic Graph) tal que si A→B, entonces A aparece antes de B. Esencial para: orden de compilación, scheduling de tareas, pipeline execution.",
+          "syntax": "def topological_sort(graph):\n    in_degree = {node: 0 for node in graph}\n    \n    # Calcular in-degrees\n    for node in graph:\n        for neighbor in graph[node]:\n            in_degree[neighbor] += 1\n    \n    # Kahn's algorithm con BFS",
+          "example": "from collections import deque, defaultdict\n\ndef topological_sort(graph):\n    # Calcular in-degree de cada nodo\n    in_degree = defaultdict(int)\n    for node in graph:\n        if node not in in_degree:\n            in_degree[node] = 0\n        for neighbor in graph[node]:\n            in_degree[neighbor] += 1\n    \n    # Queue con nodos sin dependencias\n    queue = deque([node for node in in_degree if in_degree[node] == 0])\n    result = []\n    \n    while queue:\n        node = queue.popleft()\n        result.append(node)\n        \n        # Reducir in-degree de vecinos\n        for neighbor in graph.get(node, []):\n            in_degree[neighbor] -= 1\n            if in_degree[neighbor] == 0:\n                queue.append(neighbor)\n    \n    # Si no procesamos todos = hay ciclo\n    if len(result) != len(in_degree):\n        return None  # Ciclo detectado\n    \n    return result\n\n# Pipeline de datos\npipeline = {\n    'raw_data': ['clean_data'],\n    'clean_data': ['features', 'validation'],\n    'features': ['model'],\n    'validation': ['report'],\n    'model': ['predictions'],\n    'predictions': ['report'],\n    'report': []\n}\n\norder = topological_sort(pipeline)\nprint(f\"Execution order: {order}\")",
+          "output": "Execution order: ['raw_data', 'clean_data', 'features', 'validation', 'model', 'predictions', 'report']",
+          "note": "Kahn's algorithm: O(V+E). Si resultado tiene menos nodos que el grafo = hay ciclo. Múltiples ordenamientos válidos posibles."
+        },
+        {
+          "concept": "Graph Representation - Adjacency List vs Matrix",
+          "description": "Adjacency List: Dict/List de vecinos. Eficiente en espacio para grafos sparse (pocas aristas). Adjacency Matrix: 2D array. Eficiente para grafos densos y verificación rápida de edges.",
+          "syntax": "# Adjacency List\ngraph_list = {\n    'A': ['B', 'C'],\n    'B': ['D']\n}\n\n# Adjacency Matrix\ngraph_matrix = [\n    [0, 1, 1, 0],  # A connects to B, C\n    [0, 0, 0, 1],  # B connects to D\n]",
+          "example": "from collections import defaultdict\n\n# Adjacency List - RECOMENDADO para data pipelines\nclass GraphList:\n    def __init__(self):\n        self.adj = defaultdict(list)\n    \n    def add_edge(self, u, v):\n        self.adj[u].append(v)\n    \n    def get_neighbors(self, u):\n        return self.adj[u]  # O(1)\n    \n    def has_edge(self, u, v):\n        return v in self.adj[u]  # O(degree(u))\n\n# Adjacency Matrix - para grafos densos\nclass GraphMatrix:\n    def __init__(self, n):\n        self.matrix = [[0] * n for _ in range(n)]\n        self.nodes = {}\n    \n    def add_edge(self, u, v):\n        i, j = self.nodes[u], self.nodes[v]\n        self.matrix[i][j] = 1\n    \n    def has_edge(self, u, v):\n        i, j = self.nodes[u], self.nodes[v]\n        return self.matrix[i][j] == 1  # O(1)\n\n# Comparación\nprint(\"Adjacency List:\")\nprint(\"- Espacio: O(V + E)\")\nprint(\"- Iterar vecinos: O(degree)\")\nprint(\"- Mejor para: Grafos sparse (E << V²)\")\n\nprint(\"\\nAdjacency Matrix:\")\nprint(\"- Espacio: O(V²)\")\nprint(\"- Check edge: O(1)\")\nprint(\"- Mejor para: Grafos densos (E ≈ V²)\")",
+          "output": "Adjacency List:\n- Espacio: O(V + E)\n- Iterar vecinos: O(degree)\n- Mejor para: Grafos sparse (E << V²)\n\nAdjacency Matrix:\n- Espacio: O(V²)\n- Check edge: O(1)\n- Mejor para: Grafos densos (E ≈ V²)",
+          "note": "Para data lineage (sparse graph): usa Adjacency List. Para 10K nodos, List = ~100KB, Matrix = ~100MB. List gana por mucho."
+        },
+        {
+          "concept": "Reverse Graph - Upstream/Downstream Analysis",
+          "description": "Mantener grafo reverso (edges invertidos) permite queries upstream/downstream eficientes. Crítico para impact analysis en data pipelines.",
+          "syntax": "# Original: A → B\nedges = {'A': ['B']}\n\n# Reverse: B ← A\nreverse_edges = {'B': ['A']}",
+          "example": "from collections import defaultdict\n\nclass BidirectionalGraph:\n    def __init__(self):\n        self.forward = defaultdict(list)   # A → B\n        self.backward = defaultdict(list)  # B ← A\n    \n    def add_edge(self, from_node, to_node):\n        self.forward[from_node].append(to_node)\n        self.backward[to_node].append(from_node)\n    \n    def get_downstream(self, node):\n        \"\"\"Todos los nodos que dependen de este (afectados por cambios)\"\"\"\n        visited = set()\n        stack = [node]\n        \n        while stack:\n            current = stack.pop()\n            if current not in visited:\n                visited.add(current)\n                stack.extend(self.forward[current])\n        \n        visited.discard(node)  # No incluir el nodo mismo\n        return visited\n    \n    def get_upstream(self, node):\n        \"\"\"Todas las dependencias de este nodo\"\"\"\n        visited = set()\n        stack = [node]\n        \n        while stack:\n            current = stack.pop()\n            if current not in visited:\n                visited.add(current)\n                stack.extend(self.backward[current])\n        \n        visited.discard(node)\n        return visited\n\n# Ejemplo\ngraph = BidirectionalGraph()\ngraph.add_edge('raw', 'clean')\ngraph.add_edge('clean', 'features')\ngraph.add_edge('features', 'model')\ngraph.add_edge('features', 'report')\n\nprint(f\"Upstream of 'model': {graph.get_upstream('model')}\")\nprint(f\"Downstream of 'clean': {graph.get_downstream('clean')}\")",
+          "output": "Upstream of 'model': {'raw', 'clean', 'features'}\nDownstream of 'clean': {'features', 'model', 'report'}",
+          "note": "Mantener ambos grafos usa 2x memoria pero hace queries O(E) en vez de O(V+E). Trade-off espacio-tiempo vale la pena."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# Data pipeline\ngraph = DataLineageGraph()\n\n# Raw sources\ngraph.add_node(DataNode('sales_raw', NodeType.SOURCE))\ngraph.add_node(DataNode('customers_raw', NodeType.SOURCE))\n\n# Transforms\ngraph.add_node(DataNode('sales_clean', NodeType.TRANSFORM))\ngraph.add_node(DataNode('customer_segments', NodeType.TRANSFORM))\ngraph.add_node(DataNode('sales_enriched', NodeType.TRANSFORM))\n\n# Targets\ngraph.add_node(DataNode('revenue_report', NodeType.TARGET))\n\n# Dependencies\ngraph.add_edge('sales_raw', 'sales_clean')\ngraph.add_edge('customers_raw', 'customer_segments')\ngraph.add_edge('sales_clean', 'sales_enriched')\ngraph.add_edge('customer_segments', 'sales_enriched')\ngraph.add_edge('sales_enriched', 'revenue_report')",
+          "output": "# Topological sort (execution order):\n['sales_raw', 'customers_raw', 'sales_clean', 'customer_segments', 'sales_enriched', 'revenue_report']\n\n# Shortest path sales_raw → revenue_report:\n['sales_raw', 'sales_clean', 'sales_enriched', 'revenue_report']\n\n# Impact analysis si cambio 'sales_clean':\n{\n  'affected_datasets': ['sales_enriched', 'revenue_report'],\n  'affected_count': 2,\n  'max_depth': 2,\n  'risk_level': 'medium'\n}\n\n# Upstream de 'sales_enriched':\n{'sales_raw', 'sales_clean', 'customers_raw', 'customer_segments'}",
+          "explanation": "El grafo modela las dependencias del pipeline. BFS encuentra el camino de datos. DFS detectaría si hay ciclos. El análisis de impacto muestra qué se rompe si cambias un dataset."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - BFS Shortest Path:</strong><br>Usa cola con paths completos:<br><code>queue = deque([[start]])<br>while queue:<br>    path = queue.popleft()<br>    node = path[-1]<br>    if node == end: return path<br>    for neighbor in self.edges[node]:<br>        queue.append(path + [neighbor])</code>",
+        "<strong>Pista 2 - Detectar Ciclos con DFS:</strong><br>Usa 3 estados (colores):<br><code>WHITE, GRAY, BLACK = 0, 1, 2<br>color[node] = GRAY  # Visitando<br>for neighbor in edges[node]:<br>    if color[neighbor] == GRAY:<br>        return True  # Ciclo!</code><br><br>GRAY = en stack actual = back edge.",
+        "<strong>Pista 3 - Topological Sort con Kahn:</strong><br>Calcula in-degrees y procesa nodos sin dependencias:<br><code>in_degree = {n: 0 for n in nodes}<br>for n in edges:<br>    for neighbor in edges[n]:<br>        in_degree[neighbor] += 1<br>queue = [n for n in in_degree if in_degree[n] == 0]<br># Procesa queue reduciendo in-degrees</code>"
+      ],
+      "testCases": [
+        {
+          "description": "Debe detectar ciclos correctamente",
+          "assertion": "has_cycle_dfs() returns (True, cycle_path)"
+        },
+        {
+          "description": "Debe calcular orden topológico válido",
+          "assertion": "all(dependencies[i] appear before node[i] in topological_sort())"
+        },
+        {
+          "description": "Debe encontrar camino más corto con BFS",
+          "assertion": "len(bfs_path) <= len(any_other_path)"
+        }
+      ]
+    },
+    {
+      "id": "sql_003",
+      "title": "Advanced SQL - Recursive CTEs y Dynamic Pivoting",
+      "category": "sql",
+      "difficulty": "senior",
+      "description": "Resuelve problemas complejos usando CTEs recursivos para jerarquías y pivoting dinámico para transformar filas en columnas.",
+      "timeLimit": 45,
+      "dataset": "employee_hierarchy.csv",
+      "instructions": "Resuelve dos problemas avanzados:\n\nParte 1 - Recursive CTE:\n1. Calcula reporting chain completo (quién reporta a quién hasta CEO)\n2. Calcula nivel jerárquico de cada empleado\n3. Identifica todos los subordinados directos e indirectos de un manager\n4. Calcula profundidad del árbol organizacional\n\nParte 2 - Dynamic Pivoting:\n5. Transforma datos de ventas mensuales (filas) a columnas por mes\n6. Calcula totales y % de cada mes respecto al total\n7. Maneja número variable de meses dinámicamente",
+      "starterCode": "-- PARTE 1: Recursive CTE para Jerarquía de Empleados\n-- Dataset: employees (employee_id, name, manager_id, salary)\n\n-- 1. Calcula reporting chain y nivel jerárquico\nWITH RECURSIVE employee_hierarchy AS (\n  -- Base case: CEO (sin manager)\n  SELECT \n    employee_id,\n    name,\n    manager_id,\n    salary,\n    0 as level,\n    name as reporting_chain\n  FROM employees\n  WHERE manager_id IS NULL\n  \n  UNION ALL\n  \n  -- Recursive case: empleados con manager\n  SELECT \n    -- TU CÓDIGO AQUÍ\n    -- Hint: JOIN con la CTE misma\n  FROM employees e\n  INNER JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id\n)\nSELECT * FROM employee_hierarchy\nORDER BY level, name;\n\n-- 2. Encuentra todos los subordinados de un manager específico\nWITH RECURSIVE subordinates AS (\n  -- TU CÓDIGO AQUÍ\n  -- Base: el manager específico\n  -- Recursive: todos sus reportes directos e indirectos\n)\nSELECT * FROM subordinates;\n\n\n-- PARTE 2: Dynamic Pivoting de Ventas Mensuales\n-- Dataset: monthly_sales (product, month, revenue)\n\n-- Transformar de:\n-- product | month | revenue\n-- Laptop  | Jan   | 1000\n-- Laptop  | Feb   | 1200\n-- Mouse   | Jan   | 500\n\n-- A:\n-- product | Jan  | Feb  | Total\n-- Laptop  | 1000 | 1200 | 2200\n-- Mouse   | 500  | 0    | 500\n\nSELECT \n  product,\n  -- TU CÓDIGO AQUÍ usando CASE\n  -- Hint: SUM(CASE WHEN month = 'Jan' THEN revenue ELSE 0 END) as Jan\nFROM monthly_sales\nGROUP BY product;",
+      "knowledge": [
+        {
+          "concept": "Recursive CTEs - Common Table Expressions Recursivos",
+          "description": "CTEs recursivos permiten queries que se referencian a sí mismos. Esenciales para: jerarquías (org charts), grafos, series temporales, recorridos de árboles.",
+          "syntax": "WITH RECURSIVE cte_name AS (\n  -- Base case (anchor)\n  SELECT ... WHERE condition\n  \n  UNION ALL\n  \n  -- Recursive case\n  SELECT ... FROM table JOIN cte_name ON ...\n)\nSELECT * FROM cte_name;",
+          "example": "-- Generar serie de números 1-10\nWITH RECURSIVE numbers AS (\n  SELECT 1 as n\n  UNION ALL\n  SELECT n + 1 FROM numbers WHERE n < 10\n)\nSELECT * FROM numbers;\n\n-- Output: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10\n\n-- Org chart con niveles\nWITH RECURSIVE org_chart AS (\n  -- Base: CEO (nivel 0)\n  SELECT \n    employee_id,\n    name,\n    manager_id,\n    0 as level,\n    name as path\n  FROM employees\n  WHERE manager_id IS NULL\n  \n  UNION ALL\n  \n  -- Recursive: empleados con manager\n  SELECT \n    e.employee_id,\n    e.name,\n    e.manager_id,\n    oc.level + 1,\n    oc.path || ' > ' || e.name\n  FROM employees e\n  JOIN org_chart oc ON e.manager_id = oc.employee_id\n)\nSELECT \n  level,\n  name,\n  path as reporting_chain\nFROM org_chart\nORDER BY level, name;\n\n-- Output:\n-- level | name  | reporting_chain\n-- 0     | Alice | Alice\n-- 1     | Bob   | Alice > Bob\n-- 1     | Carol | Alice > Carol\n-- 2     | Dave  | Alice > Bob > Dave",
+          "output": "level | name  | reporting_chain\n0     | Alice | Alice\n1     | Bob   | Alice > Bob\n1     | Carol | Alice > Carol\n2     | Dave  | Alice > Bob > Dave",
+          "note": "Recursive CTEs necesitan: 1) Base case (anchor), 2) UNION ALL, 3) Recursive case con JOIN a sí mismo, 4) Condición de parada. Cuidado con loops infinitos!"
+        },
+        {
+          "concept": "PIVOT y UNPIVOT - Transformación Filas↔Columnas",
+          "description": "PIVOT convierte filas en columnas. UNPIVOT hace lo opuesto. SQL estándar no tiene PIVOT nativo - se simula con CASE + GROUP BY.",
+          "syntax": "-- PIVOT manual con CASE\nSELECT \n  category,\n  SUM(CASE WHEN month = 'Jan' THEN revenue ELSE 0 END) as Jan,\n  SUM(CASE WHEN month = 'Feb' THEN revenue ELSE 0 END) as Feb\nFROM sales\nGROUP BY category;",
+          "example": "-- Data original (formato largo)\nCREATE TABLE sales (\n  product TEXT,\n  month TEXT,\n  revenue INTEGER\n);\n\nINSERT INTO sales VALUES\n  ('Laptop', 'Jan', 1000),\n  ('Laptop', 'Feb', 1200),\n  ('Laptop', 'Mar', 1100),\n  ('Mouse', 'Jan', 500),\n  ('Mouse', 'Feb', 600);\n\n-- PIVOT manual (filas → columnas)\nSELECT \n  product,\n  SUM(CASE WHEN month = 'Jan' THEN revenue ELSE 0 END) as Jan,\n  SUM(CASE WHEN month = 'Feb' THEN revenue ELSE 0 END) as Feb,\n  SUM(CASE WHEN month = 'Mar' THEN revenue ELSE 0 END) as Mar,\n  SUM(revenue) as Total\nFROM sales\nGROUP BY product;\n\n-- Output (formato ancho):\n-- product | Jan  | Feb  | Mar  | Total\n-- Laptop  | 1000 | 1200 | 1100 | 3300\n-- Mouse   | 500  | 600  | 0    | 1100",
+          "output": "product | Jan  | Feb  | Mar  | Total\nLaptop  | 1000 | 1200 | 1100 | 3300\nMouse   | 500  | 600  | 0    | 1100",
+          "note": "Para pivoting dinámico (columnas desconocidas), necesitas generar SQL dinámicamente. CASE es manual pero portable. Algunos DBs tienen PIVOT nativo (SQL Server, Oracle)."
+        },
+        {
+          "concept": "Window Functions vs GROUP BY - Cuándo Usar Cada Uno",
+          "description": "GROUP BY colapsa filas. Window functions mantienen filas originales. Window functions permiten: agregaciones + detalle, running totals, rankings.",
+          "syntax": "-- GROUP BY (colapsa)\nSELECT category, SUM(sales)\nFROM products\nGROUP BY category;\n\n-- Window function (mantiene filas)\nSELECT \n  product,\n  sales,\n  SUM(sales) OVER (PARTITION BY category) as category_total\nFROM products;",
+          "example": "CREATE TABLE products (\n  product TEXT,\n  category TEXT,\n  sales INTEGER\n);\n\nINSERT INTO products VALUES\n  ('Laptop', 'Electronics', 1000),\n  ('Mouse', 'Electronics', 500),\n  ('Desk', 'Furniture', 800),\n  ('Chair', 'Furniture', 600);\n\n-- GROUP BY - pierde detalle de productos\nSELECT \n  category,\n  SUM(sales) as total_sales\nFROM products\nGROUP BY category;\n\n-- Output:\n-- category    | total_sales\n-- Electronics | 1500\n-- Furniture   | 1400\n\n-- Window function - mantiene detalle + agregación\nSELECT \n  product,\n  category,\n  sales,\n  SUM(sales) OVER (PARTITION BY category) as category_total,\n  ROUND(100.0 * sales / SUM(sales) OVER (PARTITION BY category), 2) as pct_of_category\nFROM products\nORDER BY category, sales DESC;\n\n-- Output:\n-- product | category    | sales | category_total | pct_of_category\n-- Laptop  | Electronics | 1000  | 1500           | 66.67\n-- Mouse   | Electronics | 500   | 1500           | 33.33\n-- Desk    | Furniture   | 800   | 1400           | 57.14\n-- Chair   | Furniture   | 600   | 1400           | 42.86",
+          "output": "-- GROUP BY output:\ncategory    | total_sales\nElectronics | 1500\nFurniture   | 1400\n\n-- Window function output:\nproduct | category    | sales | category_total | pct_of_category\nLaptop  | Electronics | 1000  | 1500           | 66.67\nMouse   | Electronics | 500   | 1500           | 33.33\nDesk    | Furniture   | 800   | 1400           | 57.14\nChair   | Furniture   | 600   | 1400           | 42.86",
+          "note": "Usa GROUP BY cuando solo necesitas agregados. Usa Window functions cuando necesitas agregados + detalle. Window functions son más expresivas pero pueden ser más lentas en datasets enormes."
+        },
+        {
+          "concept": "Self-Joins - Comparar Filas de la Misma Tabla",
+          "description": "Self-join une tabla consigo misma. Útil para: jerarquías (employee-manager), comparaciones temporales (mes actual vs anterior), encontrar duplicados.",
+          "syntax": "SELECT \n  e1.name as employee,\n  e2.name as manager\nFROM employees e1\nLEFT JOIN employees e2 ON e1.manager_id = e2.employee_id;",
+          "example": "CREATE TABLE employees (\n  id INTEGER,\n  name TEXT,\n  manager_id INTEGER,\n  salary INTEGER\n);\n\nINSERT INTO employees VALUES\n  (1, 'Alice', NULL, 150000),    -- CEO\n  (2, 'Bob', 1, 120000),         -- Reports to Alice\n  (3, 'Carol', 1, 125000),       -- Reports to Alice\n  (4, 'Dave', 2, 90000),         -- Reports to Bob\n  (5, 'Eve', 2, 95000);          -- Reports to Bob\n\n-- Self-join para mostrar employee-manager relationships\nSELECT \n  e.name as employee,\n  e.salary as employee_salary,\n  COALESCE(m.name, 'CEO') as manager,\n  COALESCE(m.salary, 0) as manager_salary,\n  CASE \n    WHEN e.salary > COALESCE(m.salary, 0) \n    THEN 'Earns more than manager!'\n    ELSE 'Normal'\n  END as status\nFROM employees e\nLEFT JOIN employees m ON e.manager_id = m.id\nORDER BY e.id;\n\n-- Output:\n-- employee | employee_salary | manager | manager_salary | status\n-- Alice    | 150000         | CEO     | 0              | Earns more than manager!\n-- Bob      | 120000         | Alice   | 150000         | Normal\n-- Carol    | 125000         | Alice   | 150000         | Normal\n-- Dave     | 90000          | Bob     | 120000         | Normal\n-- Eve      | 95000          | Bob     | 120000         | Normal",
+          "output": "employee | employee_salary | manager | manager_salary | status\nAlice    | 150000         | CEO     | 0              | Earns more than manager!\nBob      | 120000         | Alice   | 150000         | Normal\nCarol    | 125000         | Alice   | 150000         | Normal\nDave     | 90000          | Bob     | 120000         | Normal\nEve      | 95000          | Bob     | 120000         | Normal",
+          "note": "Usa LEFT JOIN para incluir filas sin match (como CEO sin manager). Usa alias diferentes (e1, e2) para distinguir. Self-joins pueden ser costosos - asegura índices apropiados."
+        }
+      ],
+      "examples": [
+        {
+          "input": "-- Employees table:\n-- id | name  | manager_id | salary\n-- 1  | Alice | NULL       | 150000\n-- 2  | Bob   | 1          | 120000\n-- 3  | Carol | 1          | 125000\n-- 4  | Dave  | 2          | 90000\n-- 5  | Eve   | 2          | 95000\n-- 6  | Frank | 4          | 70000",
+          "output": "-- Recursive CTE output (reporting chain):\nlevel | name  | manager      | reporting_chain\n0     | Alice | NULL         | Alice\n1     | Bob   | Alice        | Alice > Bob\n1     | Carol | Alice        | Alice > Carol\n2     | Dave  | Bob          | Alice > Bob > Dave\n2     | Eve   | Bob          | Alice > Bob > Eve\n3     | Frank | Dave         | Alice > Bob > Dave > Frank\n\n-- Subordinates of Bob:\nmanager | subordinate | level_below\nBob     | Dave        | 1\nBob     | Eve         | 1\nBob     | Frank       | 2\n\n-- Pivot sales by month:\nproduct | Jan  | Feb  | Mar  | Total | Jan_pct\nLaptop  | 1000 | 1200 | 1100 | 3300  | 30.3%\nMouse   | 500  | 600  | 0    | 1100  | 45.5%",
+          "explanation": "El recursive CTE construye el árbol jerárquico nivel por nivel. El self-join conecta empleados con sus managers. El pivoting transforma datos mensuales en columnas para análisis comparativo."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Recursive CTE Base Case:</strong><br>El base case es la raíz del árbol (CEO sin manager):<br><code>SELECT employee_id, name, manager_id, 0 as level<br>FROM employees<br>WHERE manager_id IS NULL</code><br><br>El recursive case hace JOIN con la CTE misma.",
+        "<strong>Pista 2 - Recursive Case con Path:</strong><br>En el recursive case, incrementa level y concatena path:<br><code>SELECT <br>  e.employee_id,<br>  e.name,<br>  e.manager_id,<br>  eh.level + 1,<br>  eh.path || ' > ' || e.name<br>FROM employees e<br>JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id</code>",
+        "<strong>Pista 3 - PIVOT Manual con CASE:</strong><br>Usa SUM con CASE para cada mes:<br><code>SELECT<br>  product,<br>  SUM(CASE WHEN month = 'Jan' THEN revenue ELSE 0 END) as Jan,<br>  SUM(CASE WHEN month = 'Feb' THEN revenue ELSE 0 END) as Feb,<br>  SUM(revenue) as Total<br>FROM sales<br>GROUP BY product</code>"
+      ],
+      "testCases": [
+        {
+          "description": "Debe calcular niveles jerárquicos correctamente",
+          "assertion": "CEO tiene level = 0, reportes directos level = 1, etc."
+        },
+        {
+          "description": "Debe encontrar todos los subordinados recursivamente",
+          "assertion": "subordinates de CEO incluye a todos en la organización"
+        },
+        {
+          "description": "Debe pivotar correctamente con NULLS como 0",
+          "assertion": "productos sin ventas en un mes muestran 0, no NULL"
+        }
+      ]
+    },
+    {
+      "id": "python_010",
+      "title": "AsyncIO - Concurrent Data Fetching y Rate Limiting",
+      "category": "python",
+      "difficulty": "senior",
+      "description": "Implementa sistema asíncrono para fetching concurrente de datos desde múltiples APIs con rate limiting, retry logic, y error handling.",
+      "timeLimit": 50,
+      "dataset": "api_endpoints.json",
+      "instructions": "Crea un data fetcher asíncrono que:\n1. Haga fetch concurrente de 100+ APIs simultáneamente\n2. Implemente rate limiting (max N requests/segundo)\n3. Maneje retries con exponential backoff asíncrono\n4. Agrupe resultados con asyncio.gather() y manejo de errores\n5. Use async context managers para manejo de recursos\n6. Implemente timeout por request individual\n7. Registre progreso en tiempo real\n8. Compare performance: sync vs async\n\nDebe procesar 1000 API calls en <10 segundos vs >60s sync.",
+      "starterCode": "import asyncio\nimport aiohttp\nimport time\nfrom typing import List, Dict, Any, Optional\nfrom dataclasses import dataclass\nfrom contextlib import asynccontextmanager\nfrom collections import deque\n\n@dataclass\nclass APIRequest:\n    url: str\n    method: str = 'GET'\n    params: Dict = None\n    timeout: float = 5.0\n\nclass RateLimiter:\n    def __init__(self, max_requests: int, time_window: float = 1.0):\n        \"\"\"\n        Args:\n            max_requests: Máximo requests permitidos\n            time_window: Ventana de tiempo en segundos\n        \"\"\"\n        self.max_requests = max_requests\n        self.time_window = time_window\n        self.requests = deque()\n        self.lock = asyncio.Lock()\n    \n    async def acquire(self):\n        \"\"\"\n        Espera hasta que pueda hacer un request sin exceder rate limit\n        \"\"\"\n        # Tu código aquí\n        pass\n\nclass AsyncDataFetcher:\n    def __init__(self, rate_limiter: RateLimiter, max_concurrent: int = 50):\n        \"\"\"\n        Args:\n            rate_limiter: RateLimiter instance\n            max_concurrent: Máximo requests concurrentes\n        \"\"\"\n        self.rate_limiter = rate_limiter\n        self.semaphore = asyncio.Semaphore(max_concurrent)\n        self.stats = {\n            'total': 0,\n            'success': 0,\n            'failed': 0,\n            'retried': 0\n        }\n    \n    async def fetch_one(self, session: aiohttp.ClientSession, \n                       request: APIRequest, max_retries: int = 3) -> Dict:\n        \"\"\"\n        Fetch un request con retry logic\n        \n        Args:\n            session: aiohttp ClientSession\n            request: APIRequest object\n            max_retries: Máximo número de retries\n        \n        Returns:\n            Dict con response data o error info\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    async def fetch_all(self, requests: List[APIRequest]) -> List[Dict]:\n        \"\"\"\n        Fetch todos los requests concurrentemente\n        \n        Returns:\n            Lista de resultados (exitosos y fallidos)\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    def get_stats(self) -> Dict:\n        \"\"\"Retorna estadísticas de ejecución\"\"\"\n        return self.stats\n\n# Comparación sync vs async\ndef fetch_sync(urls: List[str]) -> List[Dict]:\n    \"\"\"Versión síncrona (LENTA) - para comparación\"\"\"\n    import requests\n    results = []\n    for url in urls:\n        try:\n            response = requests.get(url, timeout=5)\n            results.append({'url': url, 'status': response.status_code})\n        except Exception as e:\n            results.append({'url': url, 'error': str(e)})\n    return results\n\nasync def fetch_async(urls: List[str]) -> List[Dict]:\n    \"\"\"Versión asíncrona (RÁPIDA)\"\"\"\n    rate_limiter = RateLimiter(max_requests=100, time_window=1.0)\n    fetcher = AsyncDataFetcher(rate_limiter, max_concurrent=50)\n    \n    requests = [APIRequest(url=url) for url in urls]\n    results = await fetcher.fetch_all(requests)\n    \n    return results\n\n# Ejemplo de uso\nif __name__ == \"__main__\":\n    # Generar URLs de prueba\n    urls = [f\"https://jsonplaceholder.typicode.com/posts/{i}\" for i in range(1, 101)]\n    \n    # Sync version\n    start = time.time()\n    results_sync = fetch_sync(urls)\n    time_sync = time.time() - start\n    print(f\"Sync: {time_sync:.2f}s\")\n    \n    # Async version\n    start = time.time()\n    results_async = asyncio.run(fetch_async(urls))\n    time_async = time.time() - start\n    print(f\"Async: {time_async:.2f}s\")\n    print(f\"Speedup: {time_sync / time_async:.1f}x\")",
+      "knowledge": [
+        {
+          "concept": "asyncio Basics - Event Loop y Coroutines",
+          "description": "asyncio permite I/O concurrente con single thread. Coroutines (async def) se pausan en await sin bloquear. Event loop coordina ejecución. Ideal para I/O-bound tasks.",
+          "syntax": "import asyncio\n\nasync def coroutine():\n    await asyncio.sleep(1)\n    return 'done'\n\n# Run\nresult = asyncio.run(coroutine())",
+          "example": "import asyncio\nimport time\n\n# Función síncrona (bloquea)\ndef sync_task(n):\n    print(f\"Task {n} start\")\n    time.sleep(1)  # BLOQUEA todo el programa\n    print(f\"Task {n} done\")\n    return n\n\n# Coroutine asíncrona (no bloquea)\nasync def async_task(n):\n    print(f\"Task {n} start\")\n    await asyncio.sleep(1)  # PERMITE que otras tasks corran\n    print(f\"Task {n} done\")\n    return n\n\n# Sync: ejecuta secuencialmente\nstart = time.time()\nfor i in range(3):\n    sync_task(i)\nprint(f\"Sync total: {time.time() - start:.1f}s\")  # ~3 segundos\n\n# Async: ejecuta concurrentemente\nasync def main():\n    tasks = [async_task(i) for i in range(3)]\n    await asyncio.gather(*tasks)\n\nstart = time.time()\nasyncio.run(main())\nprint(f\"Async total: {time.time() - start:.1f}s\")  # ~1 segundo",
+          "output": "Task 0 start\nTask 0 done\nTask 1 start\nTask 1 done\nTask 2 start\nTask 2 done\nSync total: 3.0s\n\nTask 0 start\nTask 1 start\nTask 2 start\nTask 0 done\nTask 1 done\nTask 2 done\nAsync total: 1.0s",
+          "note": "async/await NO crea threads. Es concurrencia cooperativa - cada coroutine debe ceder control con await. Perfecto para I/O (network, files), NO para CPU-bound (usa multiprocessing)."
+        },
+        {
+          "concept": "asyncio.gather() - Ejecutar Múltiples Coroutines",
+          "description": "gather() ejecuta múltiples coroutines concurrentemente y espera que todas terminen. Retorna lista de resultados en mismo orden. Puede manejar errores con return_exceptions=True.",
+          "syntax": "results = await asyncio.gather(\n    coro1(),\n    coro2(),\n    coro3(),\n    return_exceptions=True  # No falla si una coro lanza exception\n)",
+          "example": "import asyncio\nimport random\n\nasync def fetch_data(source_id):\n    delay = random.uniform(0.5, 2.0)\n    await asyncio.sleep(delay)\n    \n    # 20% chance de error\n    if random.random() < 0.2:\n        raise ValueError(f\"Source {source_id} failed\")\n    \n    return {'source': source_id, 'data': f'Data from {source_id}'}\n\nasync def main():\n    # Crear 10 tasks\n    tasks = [fetch_data(i) for i in range(10)]\n    \n    # Opción 1: Fallar si cualquiera falla\n    try:\n        results = await asyncio.gather(*tasks)\n        print(f\"Success: {len(results)} results\")\n    except ValueError as e:\n        print(f\"Failed: {e}\")\n    \n    # Opción 2: Continuar aunque fallen (RECOMENDADO)\n    tasks = [fetch_data(i) for i in range(10)]\n    results = await asyncio.gather(*tasks, return_exceptions=True)\n    \n    successes = [r for r in results if not isinstance(r, Exception)]\n    failures = [r for r in results if isinstance(r, Exception)]\n    \n    print(f\"\\nWith return_exceptions=True:\")\n    print(f\"Successes: {len(successes)}\")\n    print(f\"Failures: {len(failures)}\")\n\nasyncio.run(main())",
+          "output": "Failed: Source 3 failed\n\nWith return_exceptions=True:\nSuccesses: 8\nFailures: 2",
+          "note": "gather() preserva orden de resultados. Para procesar resultados apenas terminan (sin esperar todas), usa asyncio.as_completed(). return_exceptions=True es crítico en producción."
+        },
+        {
+          "concept": "asyncio.Semaphore - Limitar Concurrencia",
+          "description": "Semaphore limita cuántas coroutines pueden ejecutarse simultáneamente. Previene saturar recursos (connections, memory, API limits). Crítico para escalabilidad.",
+          "syntax": "sem = asyncio.Semaphore(10)  # Max 10 concurrentes\n\nasync with sem:\n    # Solo 10 coroutines ejecutan esto simultáneamente\n    await do_work()",
+          "example": "import asyncio\nimport time\n\nasync def process_item(item_id, sem):\n    async with sem:  # Espera si ya hay 3 corriendo\n        print(f\"{time.strftime('%H:%M:%S')} - Processing {item_id}\")\n        await asyncio.sleep(1)  # Simula trabajo\n        print(f\"{time.strftime('%H:%M:%S')} - Done {item_id}\")\n        return item_id\n\nasync def main():\n    sem = asyncio.Semaphore(3)  # Max 3 simultáneos\n    \n    # Crear 10 tasks\n    tasks = [process_item(i, sem) for i in range(10)]\n    \n    start = time.time()\n    results = await asyncio.gather(*tasks)\n    elapsed = time.time() - start\n    \n    print(f\"\\nProcessed {len(results)} items in {elapsed:.1f}s\")\n    print(f\"Average: {elapsed/len(results):.1f}s per item (concurrent)\")\n    print(f\"Would take {len(results)*1:.1f}s sequentially\")\n\nasyncio.run(main())\n\n# Output muestra que solo 3 procesan a la vez:\n# 10:00:00 - Processing 0\n# 10:00:00 - Processing 1\n# 10:00:00 - Processing 2\n# 10:00:01 - Done 0\n# 10:00:01 - Processing 3  # 3 nuevo comienza cuando 0 termina\n# ...",
+          "output": "10:00:00 - Processing 0\n10:00:00 - Processing 1\n10:00:00 - Processing 2\n10:00:01 - Done 0\n10:00:01 - Processing 3\n10:00:01 - Done 1\n10:00:01 - Processing 4\n...\n\nProcessed 10 items in 4.0s\nAverage: 0.4s per item (concurrent)\nWould take 10.0s sequentially",
+          "note": "Sin Semaphore, todas las 10 tasks correrían simultáneamente. Con Semaphore(3), controlas resource usage. Para APIs: usa semaphore para respetar rate limits."
+        },
+        {
+          "concept": "aiohttp - Async HTTP Client",
+          "description": "aiohttp es librería async para HTTP requests. Mucho más rápida que requests para múltiples calls. Usa connection pooling automáticamente. Requiere async context manager.",
+          "syntax": "import aiohttp\n\nasync with aiohttp.ClientSession() as session:\n    async with session.get(url) as response:\n        data = await response.json()",
+          "example": "import asyncio\nimport aiohttp\nimport time\n\nasync def fetch_url(session, url):\n    async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as response:\n        data = await response.json()\n        return {'url': url, 'status': response.status, 'title': data.get('title')}\n\nasync def fetch_all(urls):\n    async with aiohttp.ClientSession() as session:\n        tasks = [fetch_url(session, url) for url in urls]\n        results = await asyncio.gather(*tasks, return_exceptions=True)\n        return results\n\n# Test con 20 URLs\nurls = [f\"https://jsonplaceholder.typicode.com/posts/{i}\" for i in range(1, 21)]\n\nstart = time.time()\nresults = asyncio.run(fetch_all(urls))\nprint(f\"Fetched {len(results)} URLs in {time.time() - start:.2f}s\")\n\n# Con requests síncrono tomaría ~10-15s\n# Con aiohttp async: ~0.5-1s (10-30x más rápido)",
+          "output": "Fetched 20 URLs in 0.73s",
+          "note": "SIEMPRE reusa ClientSession (connection pooling). NO crees nueva session por request. async with asegura cleanup de conexiones. aiohttp es estándar para async HTTP."
+        },
+        {
+          "concept": "Rate Limiting Asíncrono - Token Bucket Algorithm",
+          "description": "Rate limiting previene saturar APIs externas. Token bucket permite burst traffic pero limita promedio. Implementación async usa asyncio.Lock y deque para tracking.",
+          "syntax": "class RateLimiter:\n    def __init__(self, rate):\n        self.rate = rate\n        self.tokens = deque()\n    \n    async def acquire(self):\n        # Remove old tokens\n        # Wait if rate exceeded",
+          "example": "import asyncio\nfrom collections import deque\nimport time\n\nclass RateLimiter:\n    def __init__(self, max_requests, time_window=1.0):\n        self.max_requests = max_requests\n        self.time_window = time_window\n        self.requests = deque()\n        self.lock = asyncio.Lock()\n    \n    async def acquire(self):\n        async with self.lock:\n            now = time.time()\n            \n            # Remover requests fuera de ventana\n            while self.requests and self.requests[0] < now - self.time_window:\n                self.requests.popleft()\n            \n            # Si alcanzamos límite, esperar\n            if len(self.requests) >= self.max_requests:\n                sleep_time = self.requests[0] + self.time_window - now\n                await asyncio.sleep(sleep_time)\n                return await self.acquire()  # Retry\n            \n            # Agregar este request\n            self.requests.append(now)\n\nasync def api_call(rate_limiter, call_id):\n    await rate_limiter.acquire()\n    print(f\"{time.strftime('%H:%M:%S.%f')[:-3]} - Call {call_id}\")\n    return call_id\n\nasync def main():\n    limiter = RateLimiter(max_requests=5, time_window=1.0)  # 5 req/sec\n    \n    # Intentar hacer 15 calls\n    tasks = [api_call(limiter, i) for i in range(15)]\n    await asyncio.gather(*tasks)\n\nasyncio.run(main())\n\n# Output muestra rate limiting:\n# 10:00:00.000 - Call 0\n# 10:00:00.001 - Call 1\n# 10:00:00.001 - Call 2\n# 10:00:00.002 - Call 3\n# 10:00:00.002 - Call 4\n# 10:00:01.003 - Call 5  # Espera 1 segundo\n# 10:00:01.003 - Call 6\n# ...",
+          "output": "10:00:00.000 - Call 0\n10:00:00.001 - Call 1\n10:00:00.002 - Call 2\n10:00:00.002 - Call 3\n10:00:00.003 - Call 4\n10:00:01.004 - Call 5\n10:00:01.004 - Call 6\n10:00:01.005 - Call 7\n10:00:01.005 - Call 8\n10:00:01.006 - Call 9\n10:00:02.007 - Call 10",
+          "note": "Token bucket permite bursts pequeños pero mantiene promedio. Usa asyncio.Lock para thread-safety. Crítico para APIs con rate limits (Twitter, OpenAI, etc.)."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# Fetch 100 API endpoints concurrentemente\nurls = [f\"https://api.example.com/data/{i}\" for i in range(100)]\n\nrate_limiter = RateLimiter(max_requests=50, time_window=1.0)\nfetcher = AsyncDataFetcher(rate_limiter, max_concurrent=20)\n\nrequests = [APIRequest(url=url, timeout=5.0) for url in urls]\nresults = await fetcher.fetch_all(requests)",
+          "output": "# Progreso en tiempo real:\nProcessing: 20/100 (20.0%) - 2.1s elapsed\nProcessing: 40/100 (40.0%) - 3.8s elapsed\nProcessing: 60/100 (60.0%) - 5.2s elapsed\nProcessing: 80/100 (80.0%) - 6.9s elapsed\nProcessing: 100/100 (100.0%) - 8.3s elapsed\n\n# Resultados:\n{\n  'total': 100,\n  'success': 97,\n  'failed': 3,\n  'retried': 5,\n  'total_time': 8.3,\n  'avg_time_per_request': 0.083\n}\n\n# Comparación:\nSync (requests): 62.5s (0.625s/request)\nAsync (aiohttp): 8.3s (0.083s/request)\nSpeedup: 7.5x",
+          "explanation": "AsyncIO permite hacer 20 requests simultáneos (Semaphore). El rate limiter asegura no exceder 50 req/s. Los retries se manejan automáticamente con exponential backoff. El speedup es dramático vs código síncrono."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Rate Limiter Acquire:</strong><br>Remueve requests viejos y espera si excede límite:<br><code>now = time.time()<br>while self.requests and self.requests[0] < now - self.time_window:<br>    self.requests.popleft()<br>if len(self.requests) >= self.max_requests:<br>    sleep_time = self.requests[0] + self.time_window - now<br>    await asyncio.sleep(sleep_time)</code>",
+        "<strong>Pista 2 - Fetch One con Retries:</strong><br>Usa loop con exponential backoff:<br><code>for attempt in range(max_retries):<br>    try:<br>        await self.rate_limiter.acquire()<br>        async with session.get(url, timeout=...) as resp:<br>            return await resp.json()<br>    except Exception as e:<br>        if attempt < max_retries - 1:<br>            await asyncio.sleep(2 ** attempt)<br>        else:<br>            return {'error': str(e)}</code>",
+        "<strong>Pista 3 - Fetch All con Semaphore:</strong><br>Combina semaphore con gather:<br><code>async with aiohttp.ClientSession() as session:<br>    async def bounded_fetch(req):<br>        async with self.semaphore:<br>            return await self.fetch_one(session, req)<br>    <br>    tasks = [bounded_fetch(r) for r in requests]<br>    return await asyncio.gather(*tasks, return_exceptions=True)</code>"
+      ],
+      "testCases": [
+        {
+          "description": "Debe respetar rate limit",
+          "assertion": "requests_per_second <= max_requests + 1  # +1 tolerance"
+        },
+        {
+          "description": "Debe ser 5x+ más rápido que sync",
+          "assertion": "async_time < sync_time / 5"
+        },
+        {
+          "description": "Debe reintentar requests fallidos",
+          "assertion": "stats['retried'] > 0 when failures occur"
+        }
+      ]
+    },
+    {
+      "id": "python_011",
+      "title": "Pandas Performance Optimization - Vectorización Avanzada",
+      "category": "python",
+      "difficulty": "senior",
+      "description": "Optimiza operaciones Pandas eliminando loops, usando vectorización, categoricals, y técnicas avanzadas para procesar 10M+ rows eficientemente.",
+      "timeLimit": 45,
+      "dataset": "sample_data.csv",
+      "instructions": "Optimiza un pipeline de Pandas lento para hacerlo 100x más rápido:\n1. Reemplaza apply() con operaciones vectorizadas\n2. Usa categorical dtype para columnas repetitivas\n3. Optimiza memory usage con dtypes apropiados\n4. Implementa chunked processing para datasets grandes\n5. Usa eval() y query() para expresiones complejas\n6. Evita copy() innecesarios con inplace operations\n7. Usa NumPy para operaciones numéricas puras\n8. Implementa parallel processing con multiprocessing\n\nMedir: memory usage, execution time, comparar slow vs fast.",
+      "starterCode": "import pandas as pd\nimport numpy as np\nimport time\nfrom typing import Tuple\nimport multiprocessing as mp\n\nclass PandasOptimizer:\n    @staticmethod\n    def optimize_dtypes(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:\n        \"\"\"\n        Optimiza tipos de datos para reducir memoria\n        \n        Returns:\n            (df_optimizado, estadísticas_de_mejora)\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    @staticmethod\n    def vectorized_string_operations(df: pd.DataFrame) -> pd.DataFrame:\n        \"\"\"\n        Reemplaza loops en string operations con vectorización\n        \n        LENTO:\n        df['clean'] = df['text'].apply(lambda x: x.strip().lower())\n        \n        RÁPIDO:\n        df['clean'] = df['text'].str.strip().str.lower()\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    @staticmethod\n    def use_categoricals(df: pd.DataFrame, columns: list) -> pd.DataFrame:\n        \"\"\"\n        Convierte columnas con pocos valores únicos a categorical\n        \n        Beneficio: 10-100x menos memoria para columnas repetitivas\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    @staticmethod\n    def vectorized_conditionals(df: pd.DataFrame) -> pd.DataFrame:\n        \"\"\"\n        Reemplaza apply() con np.where() o np.select()\n        \n        LENTO:\n        df['category'] = df['value'].apply(\n            lambda x: 'high' if x > 100 else 'low'\n        )\n        \n        RÁPIDO:\n        df['category'] = np.where(df['value'] > 100, 'high', 'low')\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    @staticmethod\n    def chunked_processing(file_path: str, chunk_size: int = 100000) -> pd.DataFrame:\n        \"\"\"\n        Procesa archivo grande en chunks para evitar out-of-memory\n        \n        Args:\n            file_path: Path a CSV grande\n            chunk_size: Filas por chunk\n        \n        Returns:\n            DataFrame con resultados agregados\n        \"\"\"\n        # Tu código aquí\n        pass\n    \n    @staticmethod\n    def use_eval_query(df: pd.DataFrame) -> pd.DataFrame:\n        \"\"\"\n        Usa eval() y query() para expresiones complejas\n        \n        LENTO:\n        df[(df['a'] > 5) & (df['b'] < 10) & (df['c'] == 'yes')]\n        \n        RÁPIDO:\n        df.query('a > 5 and b < 10 and c == \"yes\"')\n        \"\"\"\n        # Tu código aquí\n        pass\n\n# Benchmark comparativo\ndef benchmark_slow_vs_fast():\n    \"\"\"Compara versión lenta vs optimizada\"\"\"\n    \n    # Generar dataset de prueba\n    n_rows = 1_000_000\n    df = pd.DataFrame({\n        'id': range(n_rows),\n        'category': np.random.choice(['A', 'B', 'C', 'D'], n_rows),\n        'value': np.random.randn(n_rows),\n        'status': np.random.choice(['active', 'inactive'], n_rows),\n        'amount': np.random.randint(1, 1000, n_rows),\n        'date': pd.date_range('2020-01-01', periods=n_rows, freq='1min')\n    })\n    \n    print(f\"Dataset: {len(df):,} rows\")\n    print(f\"Memory (original): {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB\")\n    \n    # VERSIÓN LENTA\n    start = time.time()\n    df_slow = df.copy()\n    \n    # Operación 1: Categorización con apply (LENTO)\n    df_slow['tier'] = df_slow['amount'].apply(\n        lambda x: 'platinum' if x > 800 else 'gold' if x > 500 else 'silver'\n    )\n    \n    # Operación 2: String processing con apply (LENTO)\n    df_slow['status_upper'] = df_slow['status'].apply(lambda x: x.upper())\n    \n    # Operación 3: Filtrado complejo (LENTO)\n    df_slow_filtered = df_slow[\n        (df_slow['value'] > 0) & \n        (df_slow['amount'] > 100) & \n        (df_slow['category'].isin(['A', 'B']))\n    ]\n    \n    time_slow = time.time() - start\n    mem_slow = df_slow.memory_usage(deep=True).sum() / 1024**2\n    \n    # VERSIÓN RÁPIDA\n    start = time.time()\n    df_fast = df.copy()\n    \n    # Operación 1: Categorización con np.select (RÁPIDO)\n    conditions = [df_fast['amount'] > 800, df_fast['amount'] > 500]\n    choices = ['platinum', 'gold']\n    df_fast['tier'] = np.select(conditions, choices, default='silver')\n    \n    # Operación 2: String vectorizado (RÁPIDO)\n    df_fast['status_upper'] = df_fast['status'].str.upper()\n    \n    # Operación 3: Query optimizado (RÁPIDO)\n    df_fast_filtered = df_fast.query('value > 0 and amount > 100 and category in [\"A\", \"B\"]')\n    \n    # Optimize dtypes (RÁPIDO)\n    df_fast['category'] = df_fast['category'].astype('category')\n    df_fast['status'] = df_fast['status'].astype('category')\n    df_fast['tier'] = df_fast['tier'].astype('category')\n    \n    time_fast = time.time() - start\n    mem_fast = df_fast.memory_usage(deep=True).sum() / 1024**2\n    \n    # Resultados\n    print(f\"\\n{'='*50}\")\n    print(f\"SLOW version: {time_slow:.2f}s, {mem_slow:.2f} MB\")\n    print(f\"FAST version: {time_fast:.2f}s, {mem_fast:.2f} MB\")\n    print(f\"{'='*50}\")\n    print(f\"Speedup: {time_slow / time_fast:.1f}x faster\")\n    print(f\"Memory: {mem_slow / mem_fast:.1f}x less memory\")\n\nif __name__ == \"__main__\":\n    benchmark_slow_vs_fast()",
+      "knowledge": [
+        {
+          "concept": "Vectorización vs Apply - Eliminar Loops",
+          "description": "apply() ejecuta función Python por cada fila (lento). Operaciones vectorizadas usan NumPy/C bajo el hood (100x+ más rápido). SIEMPRE prefiere vectorización.",
+          "syntax": "# LENTO - apply\ndf['result'] = df['col'].apply(function)\n\n# RÁPIDO - vectorizado\ndf['result'] = df['col'].str.method()  # strings\ndf['result'] = np.where(condition, yes, no)  # conditionals",
+          "example": "import pandas as pd\nimport numpy as np\nimport time\n\ndf = pd.DataFrame({\n    'value': np.random.randint(1, 100, 1_000_000)\n})\n\n# LENTO: apply con lambda\nstart = time.time()\ndf['category_slow'] = df['value'].apply(\n    lambda x: 'high' if x > 75 else 'medium' if x > 25 else 'low'\n)\nprint(f\"Apply: {time.time() - start:.2f}s\")\n\n# RÁPIDO: np.select vectorizado\nstart = time.time()\nconditions = [df['value'] > 75, df['value'] > 25]\nchoices = ['high', 'medium']\ndf['category_fast'] = np.select(conditions, choices, default='low')\nprint(f\"Vectorized: {time.time() - start:.2f}s\")\n\n# RÁPIDO: np.where para caso simple\nstart = time.time()\ndf['above_50'] = np.where(df['value'] > 50, 'yes', 'no')\nprint(f\"np.where: {time.time() - start:.2f}s\")",
+          "output": "Apply: 2.45s\nVectorized: 0.08s\nnp.where: 0.03s\n\n# Vectorizado es 30-80x más rápido!",
+          "note": "apply() solo útil cuando REALMENTE necesitas función custom compleja. Para operaciones simples/matemáticas: SIEMPRE vectoriza. Check: df['col'].str, np.where, np.select primero."
+        },
+        {
+          "concept": "Categorical Dtype - Reducir Memoria 10-100x",
+          "description": "Categorical dtype guarda valores únicos una vez + array de indices. Ideal para columnas con muchas repeticiones (country, category, status). Reduce memoria dramáticamente.",
+          "syntax": "# Convertir a categorical\ndf['col'] = df['col'].astype('category')\n\n# O al leer CSV\ndf = pd.read_csv('file.csv', dtype={'col': 'category'})",
+          "example": "import pandas as pd\nimport numpy as np\n\n# Dataset con columnas repetitivas\ndf = pd.DataFrame({\n    'country': np.random.choice(['USA', 'UK', 'Germany', 'France'], 1_000_000),\n    'status': np.random.choice(['active', 'inactive', 'pending'], 1_000_000),\n    'value': np.random.randn(1_000_000)\n})\n\nprint(\"BEFORE optimization:\")\nprint(f\"Memory: {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB\")\nprint(f\"country dtype: {df['country'].dtype}\")\n\n# Convertir a categorical\ndf['country'] = df['country'].astype('category')\ndf['status'] = df['status'].astype('category')\n\nprint(\"\\nAFTER categorical:\")\nprint(f\"Memory: {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB\")\nprint(f\"country dtype: {df['country'].dtype}\")\n\n# Verificar unique values\nprint(f\"\\ncountry unique: {df['country'].nunique()}\")\nprint(f\"country categories: {df['country'].cat.categories.tolist()}\")",
+          "output": "BEFORE optimization:\nMemory: 76.29 MB\ncountry dtype: object\n\nAFTER categorical:\nMemory: 8.01 MB\ncountry dtype: category\n\ncountry unique: 4\ncountry categories: ['France', 'Germany', 'UK', 'USA']\n\n# 9.5x less memory!",
+          "note": "Usa categorical cuando: unique_values << total_rows. Regla: si <50% valores son únicos, considera categorical. También acelera groupby y operaciones de comparación."
+        },
+        {
+          "concept": "query() y eval() - Expresiones Eficientes",
+          "description": "query() y eval() usan numexpr bajo el hood para evaluar expresiones más rápido. Sintaxis más limpia que boolean indexing. Especialmente rápido para múltiples condiciones.",
+          "syntax": "# query para filtrar\ndf.query('col1 > 5 and col2 == \"value\"')\n\n# eval para crear columnas\ndf.eval('new_col = col1 + col2 * col3')",
+          "example": "import pandas as pd\nimport numpy as np\nimport time\n\ndf = pd.DataFrame({\n    'a': np.random.randn(1_000_000),\n    'b': np.random.randn(1_000_000),\n    'c': np.random.randn(1_000_000),\n    'category': np.random.choice(['X', 'Y', 'Z'], 1_000_000)\n})\n\n# LENTO: Boolean indexing tradicional\nstart = time.time()\nresult_slow = df[(df['a'] > 0) & (df['b'] < 1) & (df['category'] == 'X')]\nprint(f\"Boolean indexing: {time.time() - start:.3f}s\")\n\n# RÁPIDO: query()\nstart = time.time()\nresult_fast = df.query('a > 0 and b < 1 and category == \"X\"')\nprint(f\"query(): {time.time() - start:.3f}s\")\n\n# CREAR COLUMNA: tradicional\nstart = time.time()\ndf['result_slow'] = df['a'] + df['b'] * df['c']\nprint(f\"Traditional: {time.time() - start:.3f}s\")\n\n# CREAR COLUMNA: eval()\nstart = time.time()\ndf.eval('result_fast = a + b * c', inplace=True)\nprint(f\"eval(): {time.time() - start:.3f}s\")",
+          "output": "Boolean indexing: 0.045s\nquery(): 0.028s\nTraditional: 0.012s\neval(): 0.008s\n\n# query() y eval() 1.5-2x más rápidos",
+          "note": "query() y eval() usan strings - pueden no funcionar con nombres de columnas raros (espacios, etc). Beneficio mayor en expresiones complejas con múltiples operaciones."
+        },
+        {
+          "concept": "Chunked Processing - Manejar Datasets Gigantes",
+          "description": "Chunked processing lee/procesa archivo en pedazos para no cargar todo en memoria. Permite procesar 100GB+ de datos en máquina con 8GB RAM.",
+          "syntax": "# Leer en chunks\nfor chunk in pd.read_csv('file.csv', chunksize=100000):\n    process(chunk)\n    aggregate_results(chunk)",
+          "example": "import pandas as pd\nimport numpy as np\n\n# Crear archivo grande de prueba\nprint(\"Creating large file...\")\nfor i in range(10):\n    df_chunk = pd.DataFrame({\n        'id': range(i*100000, (i+1)*100000),\n        'value': np.random.randn(100000),\n        'category': np.random.choice(['A', 'B', 'C'], 100000)\n    })\n    mode = 'w' if i == 0 else 'a'\n    header = i == 0\n    df_chunk.to_csv('large_file.csv', mode=mode, header=header, index=False)\n\nprint(\"File created: 1M rows\")\n\n# Procesamiento en chunks\nprint(\"\\nProcessing in chunks...\")\n\nresults = []\nchunk_size = 100000\n\nfor i, chunk in enumerate(pd.read_csv('large_file.csv', chunksize=chunk_size)):\n    # Procesar cada chunk\n    chunk_result = chunk.groupby('category')['value'].agg(['mean', 'sum', 'count'])\n    results.append(chunk_result)\n    print(f\"Processed chunk {i+1}: {len(chunk)} rows\")\n\n# Combinar resultados\nfinal_result = pd.concat(results).groupby(level=0).agg({\n    'mean': 'mean',  # Promedio de promedios\n    'sum': 'sum',    # Suma de sumas\n    'count': 'sum'   # Suma de counts\n})\n\nprint(\"\\nFinal aggregated results:\")\nprint(final_result)",
+          "output": "Creating large file...\nFile created: 1M rows\n\nProcessing in chunks...\nProcessed chunk 1: 100000 rows\nProcessed chunk 2: 100000 rows\n...\nProcessed chunk 10: 100000 rows\n\nFinal aggregated results:\n         mean         sum   count\ncategory                        \nA      -0.0012   -401.23  333891\nB       0.0008    265.78  333102\nC      -0.0001    -33.45  333007",
+          "note": "Chunked processing es trade-off: menos memoria pero más tiempo. Usa cuando: file size > 50% de RAM disponible. Para agregaciones simples, chunks funcionan bien. Para joins complejos, considera Dask."
+        },
+        {
+          "concept": "NumPy para Operaciones Numéricas - Performance Máximo",
+          "description": "Para operaciones numéricas puras, trabajar directamente con NumPy arrays es más rápido que Pandas. Pandas agrega overhead de index/metadata.",
+          "syntax": "# Extraer numpy array\narr = df['col'].values  # o .to_numpy()\n\n# Operar en numpy\nresult_arr = np.sqrt(arr ** 2 + arr)\n\n# Reasignar a pandas\ndf['result'] = result_arr",
+          "example": "import pandas as pd\nimport numpy as np\nimport time\n\ndf = pd.DataFrame({\n    'x': np.random.randn(1_000_000),\n    'y': np.random.randn(1_000_000)\n})\n\n# LENTO: Operaciones en Pandas\nstart = time.time()\ndf['result_pandas'] = np.sqrt(df['x']**2 + df['y']**2)  # Pythagorean\nprint(f\"Pandas: {time.time() - start:.3f}s\")\n\n# RÁPIDO: Extraer a NumPy, operar, reasignar\nstart = time.time()\nx_arr = df['x'].values\ny_arr = df['y'].values\nresult_arr = np.sqrt(x_arr**2 + y_arr**2)\ndf['result_numpy'] = result_arr\nprint(f\"NumPy: {time.time() - start:.3f}s\")\n\n# ULTRA RÁPIDO: Todo en NumPy si no necesitas index\nstart = time.time()\ndata = df[['x', 'y']].values  # 2D array\nresult = np.sqrt(np.sum(data**2, axis=1))\nprint(f\"Pure NumPy: {time.time() - start:.3f}s\")\n\n# Verificar que dan mismo resultado\nprint(f\"\\nResults equal: {np.allclose(df['result_pandas'], result)}\")",
+          "output": "Pandas: 0.045s\nNumPy: 0.028s\nPure NumPy: 0.018s\n\nResults equal: True\n\n# NumPy puro es 2.5x más rápido",
+          "note": "Usa NumPy cuando: 1) No necesitas index de Pandas, 2) Operación es puramente numérica, 3) Performance crítico. Para operaciones complejas con index/joins, quédate en Pandas."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# Dataset: 5M transacciones\ndf = pd.DataFrame({\n    'user_id': np.random.randint(1, 100000, 5_000_000),\n    'amount': np.random.uniform(1, 1000, 5_000_000),\n    'category': np.random.choice(['food', 'transport', 'entertainment', 'other'], 5_000_000),\n    'status': np.random.choice(['completed', 'pending', 'failed'], 5_000_000)\n})\n\nprint(f\"Memory BEFORE: {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB\")",
+          "output": "Memory BEFORE: 381.47 MB\n\n# Optimizaciones aplicadas:\n1. category → categorical: 191.48 MB saved\n2. status → categorical: 95.74 MB saved\n3. amount → float32: 19.07 MB saved\n\nMemory AFTER: 75.18 MB\nReduction: 80.3% (5.1x less memory)\n\n# Performance benchmark:\nOperation: Complex filtering + aggregation\nSLOW (apply + loops): 12.5s\nFAST (vectorized + categorical): 0.4s\nSpeedup: 31.3x faster",
+          "explanation": "Categorical dtype reduce memoria para columnas repetitivas. Vectorización elimina loops de Python. float32 en vez de float64 reduce memoria 50% con precisión suficiente para dinero."
+        }
+      ],
+      "hints": [
+        "<strong>Pista 1 - Optimize Dtypes:</strong><br>Detecta columnas numéricas que pueden reducirse:<br><code>for col in df.select_dtypes(include=['int64']).columns:<br>    if df[col].max() < 32767:<br>        df[col] = df[col].astype('int16')<br># Para floats: usa float32 si precisión lo permite</code>",
+        "<strong>Pista 2 - Vectorize con np.select:</strong><br>Para múltiples condiciones:<br><code>conditions = [<br>    df['value'] > 100,<br>    df['value'] > 50<br>]<br>choices = ['high', 'medium']<br>df['tier'] = np.select(conditions, choices, default='low')</code><br><br>100x más rápido que apply().",
+        "<strong>Pista 3 - Chunked Processing:</strong><br>Agrega resultados incrementalmente:<br><code>aggregated = []<br>for chunk in pd.read_csv(file, chunksize=100000):<br>    result = chunk.groupby('key').sum()<br>    aggregated.append(result)<br>final = pd.concat(aggregated).groupby(level=0).sum()</code>"
+      ],
+      "testCases": [
+        {
+          "description": "Debe reducir memoria >50% con categoricals",
+          "assertion": "optimized_memory < original_memory * 0.5"
+        },
+        {
+          "description": "Debe ser 10x+ más rápido que apply()",
+          "assertion": "vectorized_time < apply_time / 10"
+        },
+        {
+          "description": "Chunked processing debe manejar files >RAM",
+          "assertion": "can_process_file_larger_than_memory == True"
+        }
+      ]
     }
   ]
 }

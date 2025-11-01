@@ -427,6 +427,11 @@ async function runPython(code) {
     }
 
     try {
+        // Load dataset into Pyodide filesystem if it exists
+        if (currentExercise.dataset) {
+            await loadDatasetIntoPyodide(currentExercise.dataset);
+        }
+
         // Capture output
         await pyodideInstance.runPythonAsync(`
 import sys
@@ -460,6 +465,31 @@ async function initPyodide() {
 
     // Load necessary packages
     await pyodideInstance.loadPackage(['numpy', 'pandas']);
+}
+
+// Load dataset into Pyodide filesystem
+async function loadDatasetIntoPyodide(filename) {
+    if (!pyodideInstance) {
+        await initPyodide();
+    }
+
+    try {
+        // Fetch the dataset file
+        const response = await fetch(`datasets/${filename}`);
+        if (!response.ok) {
+            console.warn(`Dataset ${filename} not found, skipping...`);
+            return;
+        }
+
+        const content = await response.text();
+
+        // Write file to Pyodide's virtual filesystem
+        pyodideInstance.FS.writeFile(filename, content);
+
+        console.log(`Dataset ${filename} loaded into Pyodide filesystem`);
+    } catch (error) {
+        console.warn(`Could not load dataset ${filename}:`, error);
+    }
 }
 
 // Show PySpark instructions
