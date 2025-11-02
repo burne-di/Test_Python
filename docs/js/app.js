@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadExercises();
     setupFilters();
     updateStats();
+    updateProgressDisplay();
 });
 
 // Load exercises from JSON
@@ -31,24 +32,31 @@ function displayExercises(exercises) {
         return;
     }
 
-    container.innerHTML = exercises.map(exercise => `
-        <div class="exercise-card" onclick="openExercise('${exercise.id}')">
-            <div class="exercise-card-header">
-                <span class="exercise-category category-${exercise.category}">
-                    ${exercise.category.toUpperCase()}
-                </span>
-                <span class="difficulty-badge difficulty-${exercise.difficulty}">
-                    ${exercise.difficulty === 'ssr' ? 'SSR' : 'Senior'}
-                </span>
+    container.innerHTML = exercises.map(exercise => {
+        const isCompleted = progressTracker.isExerciseCompleted(exercise.id);
+        const completedClass = isCompleted ? 'exercise-completed' : '';
+        const completedBadge = isCompleted ? '<span class="completed-badge">✓ Completado</span>' : '';
+
+        return `
+            <div class="exercise-card ${completedClass}" onclick="openExercise('${exercise.id}')">
+                <div class="exercise-card-header">
+                    <span class="exercise-category category-${exercise.category}">
+                        ${exercise.category.toUpperCase()}
+                    </span>
+                    <span class="difficulty-badge difficulty-${exercise.difficulty}">
+                        ${exercise.difficulty === 'ssr' ? 'SSR' : 'Senior'}
+                    </span>
+                    ${completedBadge}
+                </div>
+                <h3>${exercise.title}</h3>
+                <p>${exercise.description}</p>
+                <div class="exercise-meta">
+                    <span>⏱️ ${exercise.timeLimit} min</span>
+                    <span>📊 ${exercise.testCases.length} tests</span>
+                </div>
             </div>
-            <h3>${exercise.title}</h3>
-            <p>${exercise.description}</p>
-            <div class="exercise-meta">
-                <span>⏱️ ${exercise.timeLimit} min</span>
-                <span>📊 ${exercise.testCases.length} tests</span>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Setup filter listeners
@@ -87,6 +95,31 @@ function updateStats() {
     document.getElementById('sql-count').textContent = sqlCount;
     document.getElementById('python-count').textContent = pythonCount;
     document.getElementById('pyspark-count').textContent = pysparkCount;
+}
+
+// Update progress display
+function updateProgressDisplay() {
+    // Overall progress
+    const overallProgress = progressTracker.getOverallProgress(allExercises);
+    document.getElementById('overall-progress-pct').textContent = `${overallProgress.percentage}%`;
+    document.getElementById('overall-progress-bar').style.width = `${overallProgress.percentage}%`;
+    document.getElementById('completed-count').textContent = overallProgress.completed;
+    document.getElementById('total-count').textContent = overallProgress.total;
+
+    // Category progress - SQL
+    const sqlProgress = progressTracker.getCategoryProgress(allExercises, 'sql');
+    document.getElementById('sql-progress').style.width = `${sqlProgress.percentage}%`;
+    document.getElementById('sql-completed').textContent = `${sqlProgress.completed} completados`;
+
+    // Category progress - Python
+    const pythonProgress = progressTracker.getCategoryProgress(allExercises, 'python');
+    document.getElementById('python-progress').style.width = `${pythonProgress.percentage}%`;
+    document.getElementById('python-completed').textContent = `${pythonProgress.completed} completados`;
+
+    // Category progress - PySpark
+    const pysparkProgress = progressTracker.getCategoryProgress(allExercises, 'pyspark');
+    document.getElementById('pyspark-progress').style.width = `${pysparkProgress.percentage}%`;
+    document.getElementById('pyspark-completed').textContent = `${pysparkProgress.completed} completados`;
 }
 
 // Open exercise in solve page

@@ -600,6 +600,35 @@ function validateResults(results) {
 
     // Capture test results for AI context
     lastTestResults = testResults;
+
+    // Check if all tests passed
+    const allTestsPassed = testResults.every(test => test.passed);
+
+    if (allTestsPassed) {
+        // Calculate time spent
+        const timeSpent = Math.floor((Date.now() - startTime) / 1000); // in seconds
+
+        // Mark exercise as completed
+        progressTracker.markExerciseCompleted(currentExercise.id, {
+            timeSpent: timeSpent,
+            hintsUsed: hintsUsed,
+            testsPassed: testResults.length
+        });
+
+        // Show success message
+        setTimeout(() => {
+            showCompletionModal();
+        }, 1000);
+    }
+}
+
+// Show completion modal
+function showCompletionModal() {
+    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+    const minutes = Math.floor(timeSpent / 60);
+    const seconds = timeSpent % 60;
+
+    alert(`🎉 ¡Felicitaciones! Has completado el ejercicio.\n\n⏱️ Tiempo: ${minutes}m ${seconds}s\n💡 Pistas usadas: ${hintsUsed}\n\nTu progreso se ha guardado automáticamente.`);
 }
 
 // Update test case status

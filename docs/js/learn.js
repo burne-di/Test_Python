@@ -51,6 +51,9 @@ function loadExercise(index) {
     const progress = ((index + 1) / allExercises.length) * 100;
     document.getElementById('progress-bar-fill').style.width = `${progress}%`;
 
+    // Update navigation buttons
+    updateNavigationButtons();
+
     // Load content
     loadInstruction();
     loadTheory();
@@ -58,6 +61,30 @@ function loadExercise(index) {
     loadHints();
     loadCode();
     clearConsole();
+}
+
+// Update navigation button states
+function updateNavigationButtons() {
+    const btnPrevious = document.getElementById('btn-previous');
+    const btnNext = document.getElementById('btn-next');
+
+    // Disable previous button on first exercise
+    if (currentIndex === 0) {
+        btnPrevious.disabled = true;
+        btnPrevious.style.opacity = '0.5';
+        btnPrevious.style.cursor = 'not-allowed';
+    } else {
+        btnPrevious.disabled = false;
+        btnPrevious.style.opacity = '1';
+        btnPrevious.style.cursor = 'pointer';
+    }
+
+    // Update next button text on last exercise
+    if (currentIndex === allExercises.length - 1) {
+        btnNext.textContent = '🏁 Finalizar';
+    } else {
+        btnNext.textContent = 'Siguiente →';
+    }
 }
 
 // Load instruction
@@ -177,7 +204,12 @@ async function submitSolution() {
         hideLoadingModal();
 
         if (isCorrect) {
-            displayConsoleOutput('✅ ¡Solución correcta!', 'success');
+            // Mark as completed in progress tracker
+            progressTracker.markLearnCompleted(currentExercise.id, {
+                hintsUsed: hintsRevealed
+            });
+
+            displayConsoleOutput('✅ ¡Solución correcta! Progreso guardado.', 'success');
             setTimeout(() => showSuccessModal(), 500);
         } else {
             displayConsoleOutput('❌ Solución incorrecta. Revisa tu código e intenta de nuevo.', 'error');
@@ -304,19 +336,41 @@ function resetCode() {
 // NAVIGATION
 // ========================================
 
+// Previous exercise
+function previousExercise() {
+    if (currentIndex > 0) {
+        loadExercise(currentIndex - 1);
+        closeSuccessModal();
+    }
+}
+
 // Next exercise
 function nextExercise() {
     if (currentIndex < allExercises.length - 1) {
         loadExercise(currentIndex + 1);
         closeSuccessModal();
     } else {
-        alert('¡Completaste todos los ejercicios! 🎉');
+        // Completed all exercises
+        showCompletionMessage();
     }
 }
 
-// Go back
-function goBack() {
-    if (confirm('¿Seguro que quieres salir? Perderás tu progreso.')) {
+// Go to home
+function goToHome() {
+    if (confirm('¿Quieres volver al inicio? Tu progreso se guardará automáticamente.')) {
+        window.location.href = 'index.html';
+    }
+}
+
+// Show completion message
+function showCompletionMessage() {
+    const completed = allExercises.filter(ex => progressTracker.isLearnCompleted(ex.id)).length;
+    const total = allExercises.length;
+
+    alert(`🎉 ¡Felicitaciones! Has completado ${completed}/${total} ejercicios.\n\nTu progreso se ha guardado automáticamente.`);
+
+    // Optionally redirect to home
+    if (confirm('¿Quieres volver al inicio?')) {
         window.location.href = 'index.html';
     }
 }

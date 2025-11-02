@@ -12,12 +12,19 @@
     <header class="learn-header">
         <div class="container-fluid">
             <div class="header-content">
-                <button onclick="goBack()" class="btn-back">← Salir</button>
+                <div class="nav-buttons-left">
+                    <button onclick="previousExercise()" class="btn-back" id="btn-previous" title="Ejercicio anterior">
+                        ← Anterior
+                    </button>
+                    <button onclick="goToHome()" class="btn-home" title="Volver al inicio">
+                        🏠 Inicio
+                    </button>
+                </div>
                 <div class="progress-info">
                     <span class="exercise-number" id="exercise-number">1/10</span>
                     <h1 id="exercise-title">Cargando...</h1>
                 </div>
-                <button onclick="nextExercise()" class="btn-next-ex">Siguiente →</button>
+                <button onclick="nextExercise()" class="btn-next-ex" id="btn-next">Siguiente →</button>
             </div>
             <div class="progress-bar-track">
                 <div class="progress-bar-fill" id="progress-bar-fill" style="width: 10%"></div>
@@ -130,6 +137,7 @@
 
     <!-- Monaco Editor -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script src="js/progress.js"></script>
     <script src="js/learn.js"></script>
 </body>
 </html>
