@@ -205,23 +205,47 @@ async function submitSolution() {
 
     try {
         const code = editor.getValue();
+
+        console.log('🚀 Submitting solution for exercise:', currentExercise.id);
+        console.log('💡 Hints revealed:', hintsRevealed);
+
         const isCorrect = await validateSolution(code);
 
         hideLoadingModal();
 
         if (isCorrect) {
+            console.log('✅ Solution is correct, saving progress...');
+            console.log('📦 Exercise ID:', currentExercise.id);
+            console.log('🎯 progressTracker exists?', typeof progressTracker !== 'undefined');
+
             // Mark as completed in progress tracker
+            if (typeof progressTracker === 'undefined') {
+                console.error('❌ ERROR: progressTracker is not defined!');
+                alert('Error: Sistema de progreso no disponible. Recarga la página.');
+                return;
+            }
+
             progressTracker.markLearnCompleted(currentExercise.id, {
                 hintsUsed: hintsRevealed
             });
 
+            console.log('💾 Progress saved! Checking localStorage...');
+            const savedProgress = localStorage.getItem('de_practice_hub_progress');
+            if (savedProgress) {
+                const parsed = JSON.parse(savedProgress);
+                console.log('📊 Current learnProgress:', parsed.learnProgress);
+                console.log('✓ Exercise saved?', parsed.learnProgress[currentExercise.id] ? 'YES' : 'NO');
+            }
+
             displayConsoleOutput('✅ ¡Solución correcta! Progreso guardado.', 'success');
             setTimeout(() => showSuccessModal(), 500);
         } else {
+            console.log('❌ Solution is incorrect, NOT saving');
             displayConsoleOutput('❌ Solución incorrecta. Revisa tu código e intenta de nuevo.', 'error');
         }
     } catch (error) {
         hideLoadingModal();
+        console.error('❌ Submit error:', error);
         displayConsoleOutput(`Error en validación: ${error.message}`, 'error');
     }
 }
@@ -366,18 +390,40 @@ async function validateSolution(code) {
 
     try {
         // Run user code + solution check
-        const solution = currentExercise.solution;
         const test = currentExercise.test;
+
+        console.log('🧪 Validating solution...');
+        console.log('📝 User code:', code);
+        console.log('✅ Test condition:', test);
 
         // Execute user code
         await pyodideInstance.runPythonAsync(code);
 
-        // Execute test
-        const result = await pyodideInstance.runPythonAsync(test);
+        // Execute test - wrap in try/catch to get better error info
+        let result;
+        try {
+            result = await pyodideInstance.runPythonAsync(test);
+            console.log('📊 Test result:', result, 'Type:', typeof result);
+        } catch (testError) {
+            console.error('❌ Test execution failed:', testError);
+            return false;
+        }
 
-        return result === true;
+        // Python True/False are converted to JavaScript true/false by Pyodide
+        const isValid = result === true || result === 'True' || result === 1;
+
+        console.log('🎯 Validation result:', isValid);
+
+        if (isValid) {
+            console.log('✅ Solution is CORRECT - will save progress');
+        } else {
+            console.log('❌ Solution is INCORRECT - will NOT save');
+        }
+
+        return isValid;
     } catch (error) {
-        console.error('Validation error:', error);
+        console.error('❌ Validation error:', error);
+        displayConsoleOutput(`Error en validación: ${error.message}\n`, 'error');
         return false;
     }
 }
@@ -456,6 +502,113 @@ function showCompletionMessage() {
     if (confirm('¿Quieres volver al inicio?')) {
         window.location.href = 'index.html';
     }
+}
+
+// ========================================
+// DEBUG FUNCTIONS
+// ========================================
+
+// Test progress save manually
+function testProgressSave() {
+    console.log('\n🧪 ===== TESTING PROGRESS SAVE =====');
+
+    // Check if progressTracker exists
+    if (typeof progressTracker === 'undefined') {
+        console.error('❌ progressTracker is NOT defined!');
+        alert('ERROR: progressTracker no está definido. El script progress.js no se cargó correctamente.');
+        return;
+    }
+
+    console.log('✅ progressTracker is defined');
+
+    // Check current exercise
+    if (!currentExercise) {
+        console.error('❌ No exercise loaded');
+        alert('ERROR: No hay ejercicio cargado');
+        return;
+    }
+
+    console.log('✅ Current exercise:', currentExercise.id, '-', currentExercise.title);
+
+    // Try to save progress manually
+    try {
+        console.log('💾 Attempting to save progress...');
+
+        progressTracker.markLearnCompleted(currentExercise.id, {
+            hintsUsed: hintsRevealed
+        });
+
+        console.log('✅ markLearnCompleted executed');
+
+        // Check if it was actually saved
+        const savedProgress = localStorage.getItem('de_practice_hub_progress');
+
+        if (!savedProgress) {
+            console.error('❌ localStorage is EMPTY!');
+            alert('ERROR: localStorage está vacío. Verifica permisos del navegador.');
+            return;
+        }
+
+        const parsed = JSON.parse(savedProgress);
+        console.log('📦 Full progress object:', parsed);
+        console.log('📚 learnProgress:', parsed.learnProgress);
+
+        const isSaved = parsed.learnProgress[currentExercise.id];
+
+        if (isSaved) {
+            console.log('✅ ¡SUCCESS! Exercise is saved:', isSaved);
+            alert(`✅ ¡Éxito!\n\nEjercicio guardado correctamente:\n\nID: ${currentExercise.id}\nGuardado: ${isSaved.completedAt}\nHints usados: ${isSaved.hintsUsed}`);
+        } else {
+            console.error('❌ Exercise NOT found in learnProgress');
+            alert('❌ ERROR: El ejercicio NO se guardó en learnProgress');
+        }
+
+    } catch (error) {
+        console.error('❌ Error during test:', error);
+        alert(`❌ ERROR: ${error.message}`);
+    }
+
+    console.log('===== TEST COMPLETED =====\n');
+}
+
+// Check saved progress
+function checkSavedProgress() {
+    console.log('\n📊 ===== CHECKING SAVED PROGRESS =====');
+
+    try {
+        const savedProgress = localStorage.getItem('de_practice_hub_progress');
+
+        if (!savedProgress) {
+            console.log('⚠️ No progress saved yet');
+            alert('⚠️ No hay progreso guardado aún.\n\nCompleta un ejercicio primero.');
+            return;
+        }
+
+        const parsed = JSON.parse(savedProgress);
+
+        console.log('📦 Full progress:', parsed);
+
+        const learnCount = Object.keys(parsed.learnProgress || {}).length;
+        const exerciseCount = Object.keys(parsed.completedExercises || {}).length;
+
+        let message = `📊 PROGRESO GUARDADO:\n\n`;
+        message += `✅ Ejercicios Learn completados: ${learnCount}\n`;
+        message += `✅ Ejercicios Practice completados: ${exerciseCount}\n`;
+        message += `\n📚 Learn Progress:\n`;
+
+        for (const [id, data] of Object.entries(parsed.learnProgress || {})) {
+            message += `  • ${id}: ${new Date(data.completedAt).toLocaleString()}\n`;
+        }
+
+        console.log(message);
+        alert(message);
+
+    } catch (error) {
+        console.error('❌ Error reading progress:', error);
+        alert(`❌ ERROR: ${error.message}`);
+    }
+
+    console.log('===== CHECK COMPLETED =====\n');
 }
 
 // ========================================
