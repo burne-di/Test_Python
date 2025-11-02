@@ -12,18 +12,18 @@
           "title": "Python Basics",
           "description": "List comprehensions, lambdas, funciones básicas",
           "difficulty": "beginner",
-          "lessons": 10,
-          "duration": "2 horas",
+          "lessons": 4,
+          "duration": "1 hora",
           "exerciseIds": ["learn_001", "learn_002", "learn_003", "learn_004"]
         },
         {
           "id": "python-advanced",
           "title": "Python Advanced",
-          "description": "Decoradores, generadores, context managers",
+          "description": "Files, Regex, Collections, Logging, F-strings",
           "difficulty": "intermediate",
-          "lessons": 8,
-          "duration": "3 horas",
-          "exerciseIds": ["learn_011", "learn_012", "learn_013", "learn_014", "learn_015"]
+          "lessons": 9,
+          "duration": "2.5 horas",
+          "exerciseIds": ["learn_011", "learn_012", "learn_013", "learn_014", "learn_015", "learn_028", "learn_029", "learn_046", "learn_047"]
         }
       ]
     },
@@ -37,38 +37,38 @@
         {
           "id": "pandas-basics",
           "title": "Pandas Basics",
-          "description": "DataFrames, lectura de datos, filtrado básico",
+          "description": "DataFrames, lectura de datos, filtrado, groupby, merge, pivot",
           "difficulty": "beginner",
-          "lessons": 12,
-          "duration": "3 horas",
+          "lessons": 6,
+          "duration": "1.5 horas",
           "exerciseIds": ["learn_005", "learn_006", "learn_007", "learn_008", "learn_009", "learn_010"]
         },
         {
           "id": "pandas-advanced",
           "title": "Pandas Advanced",
-          "description": "GroupBy, merge, pivot, window functions",
+          "description": "Categorical dtypes, vectorización, duplicados, nulos, query",
           "difficulty": "intermediate",
-          "lessons": 15,
-          "duration": "4 horas",
-          "exerciseIds": ["learn_016", "learn_017", "learn_018", "learn_019", "learn_020"]
+          "lessons": 6,
+          "duration": "2 horas",
+          "exerciseIds": ["learn_016", "learn_017", "learn_035", "learn_036", "learn_048", "learn_049"]
         },
         {
           "id": "pandas-time-series",
           "title": "Pandas Time Series",
-          "description": "Manejo de series temporales, resample, rolling",
+          "description": "Resample, rolling windows, shift, merge_asof",
           "difficulty": "intermediate",
-          "lessons": 10,
-          "duration": "3 horas",
+          "lessons": 4,
+          "duration": "1.5 horas",
           "exerciseIds": ["learn_021", "learn_022", "learn_023", "learn_024"]
         },
         {
           "id": "pandas-optimization",
           "title": "Pandas Optimization",
-          "description": "Vectorización, dtypes, chunking, performance",
+          "description": "Detectar outliers, chunks, to_sql, optimización",
           "difficulty": "advanced",
-          "lessons": 8,
-          "duration": "2.5 horas",
-          "exerciseIds": ["learn_035", "learn_036", "learn_037", "learn_038"]
+          "lessons": 3,
+          "duration": "1 hora",
+          "exerciseIds": ["learn_037", "learn_038", "learn_039"]
         }
       ]
     },
@@ -82,29 +82,30 @@
         {
           "id": "sql-basics",
           "title": "SQL Basics",
-          "description": "SELECT, WHERE, JOIN, GROUP BY",
+          "description": "CASE, COALESCE, UNION - Expresiones y operadores",
           "difficulty": "beginner",
-          "lessons": 10,
-          "duration": "2.5 horas",
-          "exerciseIds": ["learn_025", "learn_026", "learn_027"]
+          "lessons": 3,
+          "duration": "1 hora",
+          "exerciseIds": ["learn_043", "learn_044", "learn_045"]
         },
         {
           "id": "sql-advanced",
           "title": "SQL Advanced",
-          "description": "Window functions, CTEs, subconsultas complejas",
+          "description": "CTEs, Window functions (ROW_NUMBER, LAG, RANK, ROWS BETWEEN), GROUPING SETS",
           "difficulty": "intermediate",
-          "lessons": 12,
-          "duration": "4 horas",
-          "exerciseIds": ["learn_028", "learn_029", "learn_030", "learn_031"]
+          "lessons": 6,
+          "duration": "2 horas",
+          "exerciseIds": ["learn_018", "learn_019", "learn_020", "learn_025", "learn_026", "learn_027"]
         },
         {
           "id": "sql-optimization",
           "title": "SQL Optimization",
           "description": "Índices, query plans, performance tuning",
           "difficulty": "advanced",
-          "lessons": 8,
-          "duration": "3 horas",
-          "exerciseIds": []
+          "lessons": 0,
+          "duration": "Próximamente",
+          "exerciseIds": [],
+          "comingSoon": true
         }
       ]
     },
@@ -118,29 +119,24 @@
         {
           "id": "pyspark-basics",
           "title": "PySpark Basics",
-          "description": "RDDs, DataFrames, transformations, actions",
+          "description": "Schema, Select, WithColumn, Filter, Where, GroupBy, Join (⚠️ Requiere entorno local)",
           "difficulty": "intermediate",
-          "lessons": 10,
-          "duration": "3.5 horas",
-          "exerciseIds": ["learn_040", "learn_041", "learn_042"]
-        },
-        {
-          "id": "spark-sql",
-          "title": "Spark SQL",
-          "description": "SQL en Spark, optimización de queries",
-          "difficulty": "intermediate",
-          "lessons": 8,
-          "duration": "3 horas",
-          "exerciseIds": ["learn_043", "learn_044", "learn_045"]
+          "lessons": 5,
+          "duration": "Entorno local requerido",
+          "exerciseIds": ["learn_030", "learn_031", "learn_032", "learn_033", "learn_034"],
+          "comingSoon": true,
+          "requiresLocalEnv": true
         },
         {
           "id": "pyspark-advanced",
           "title": "PySpark Advanced",
-          "description": "UDFs, partitioning, broadcast, optimization",
+          "description": "Repartition, Coalesce, Broadcast Join, Cache, Persist, UDF (⚠️ Requiere entorno local)",
           "difficulty": "advanced",
-          "lessons": 12,
-          "duration": "4 horas",
-          "exerciseIds": ["learn_046", "learn_047", "learn_048", "learn_049"]
+          "lessons": 5,
+          "duration": "Entorno local requerido",
+          "exerciseIds": ["learn_040", "learn_041", "learn_042", "learn_050"],
+          "comingSoon": true,
+          "requiresLocalEnv": true
         }
       ]
     },
