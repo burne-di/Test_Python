@@ -36,7 +36,7 @@ async function loadAllExercises() {
 }
 
 // Load exercise
-function loadExercise(index) {
+async function loadExercise(index) {
     if (index < 0 || index >= allExercises.length) return;
 
     currentIndex = index;
@@ -61,6 +61,12 @@ function loadExercise(index) {
     loadHints();
     loadCode();
     clearConsole();
+
+    // Pre-load dataset if exercise requires one
+    if (currentExercise.dataset) {
+        displayConsoleOutput(`⏳ Preparando dataset "${currentExercise.dataset}"...\n`, 'info');
+        await ensureDatasetLoaded(currentExercise.dataset);
+    }
 }
 
 // Update navigation button states
@@ -227,9 +233,12 @@ async function runPython(code) {
     }
 
     try {
-        // Load dataset if exercise requires one
+        // Ensure dataset is loaded if exercise requires one (double-check)
         if (currentExercise.dataset) {
-            await loadDatasetIntoPyodide(currentExercise.dataset);
+            const loaded = await ensureDatasetLoaded(currentExercise.dataset);
+            if (!loaded) {
+                throw new Error(`No se pudo cargar el dataset requerido: ${currentExercise.dataset}`);
+            }
         }
 
         // Capture output
@@ -280,46 +289,73 @@ async function initPyodide() {
     displayConsoleOutput('✓ Python listo\n', 'success');
 }
 
-// Load dataset into Pyodide filesystem
-async function loadDatasetIntoPyodide(filename) {
+// Ensure dataset is loaded before running code
+async function ensureDatasetLoaded(filename) {
     if (!pyodideInstance) {
         await initPyodide();
     }
 
     try {
         // Check if file is already loaded
-        try {
-            const exists = await pyodideInstance.runPythonAsync(`
+        const exists = await pyodideInstance.runPythonAsync(`
 import os
 os.path.exists('${filename}')
-            `);
-            if (exists) {
-                console.log(`✓ Dataset ${filename} already loaded`);
-                return;
-            }
-        } catch (e) {
-            // File doesn't exist, continue to load it
-        }
+        `);
 
-        // Fetch the dataset file
-        const response = await fetch(`datasets/${filename}`);
+        if (exists === true) {
+            console.log(`✓ Dataset ${filename} already loaded`);
+            displayConsoleOutput(`✓ Dataset "${filename}" ya está disponible\n`, 'success');
+            return true;
+        }
+    } catch (e) {
+        console.log(`Dataset ${filename} not loaded yet, loading now...`);
+    }
+
+    // Try to fetch and load the dataset
+    try {
+        const datasetPath = `datasets/${filename}`;
+        console.log(`📂 Current location: ${window.location.href}`);
+        console.log(`📂 Fetching dataset from: ${datasetPath}`);
+        console.log(`📂 Full URL will be: ${new URL(datasetPath, window.location.href).href}`);
+
+        const response = await fetch(datasetPath);
+
+        console.log(`📡 Response status: ${response.status} ${response.statusText}`);
+
         if (!response.ok) {
-            console.warn(`⚠️ Dataset ${filename} not found at path: datasets/${filename}`);
-            displayConsoleOutput(`⚠️ Advertencia: Dataset "${filename}" no encontrado. El código puede fallar si intenta usarlo.\n`, 'warning');
-            return;
+            throw new Error(`HTTP ${response.status}: No se encontró el archivo en ${datasetPath}`);
         }
 
         const content = await response.text();
+        console.log(`✓ Fetched ${content.length} bytes`);
+        console.log(`✓ First 100 chars: ${content.substring(0, 100)}`);
 
         // Write file to Pyodide's virtual filesystem
         pyodideInstance.FS.writeFile(filename, content);
 
-        console.log(`✓ Dataset ${filename} loaded successfully into Pyodide filesystem`);
-        displayConsoleOutput(`✓ Dataset "${filename}" cargado correctamente\n`, 'success');
+        // Verify it was written
+        const verifyExists = await pyodideInstance.runPythonAsync(`
+import os
+os.path.exists('${filename}')
+        `);
+
+        if (verifyExists === true) {
+            console.log(`✓ Dataset ${filename} loaded successfully`);
+            displayConsoleOutput(`✓ Dataset "${filename}" cargado y listo para usar\n`, 'success');
+            return true;
+        } else {
+            throw new Error('El archivo se escribió pero no se puede verificar');
+        }
     } catch (error) {
         console.error(`✗ Error loading dataset ${filename}:`, error);
-        displayConsoleOutput(`✗ Error al cargar dataset "${filename}": ${error.message}\n`, 'error');
+        displayConsoleOutput(`✗ ERROR: No se pudo cargar "${filename}"\n${error.message}\n\n⚠️ Asegúrate de que el archivo existe en la carpeta datasets/\n`, 'error');
+        return false;
     }
+}
+
+// Load dataset into Pyodide filesystem (legacy function, kept for compatibility)
+async function loadDatasetIntoPyodide(filename) {
+    return await ensureDatasetLoaded(filename);
 }
 
 // Validate solution

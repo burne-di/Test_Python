@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test CSV Loading</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .log {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .info { color: #9cdcfe; }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Carga de CSV</h1>
+    <p>Este archivo prueba si se puede cargar sample_data.csv desde diferentes rutas.</p>
+
+    <button onclick="testPath1()">Test: datasets/sample_data.csv</button>
+    <button onclick="testPath2()">Test: ./datasets/sample_data.csv</button>
+    <button onclick="testPath3()">Test: /datasets/sample_data.csv</button>
+    <button onclick="testPath4()">Test: ../datasets/sample_data.csv</button>
+
+    <div id="results"></div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        function log(message, type = 'info') {
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.textContent = message;
+            resultsDiv.appendChild(logDiv);
+        }
+
+        async function testPath(path, label) {
+            log(`\n🔍 Probando: ${label}\nRuta: ${path}`, 'info');
+
+            try {
+                const response = await fetch(path);
+
+                if (!response.ok) {
+                    log(`❌ HTTP ${response.status} - ${response.statusText}`, 'error');
+                    return false;
+                }
+
+                const content = await response.text();
+                const lines = content.trim().split('\n');
+
+                log(`✅ ¡Éxito!\nTamaño: ${content.length} bytes\nLíneas: ${lines.length}\nPrimera línea: ${lines[0]}`, 'success');
+                return true;
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        function testPath1() { testPath('datasets/sample_data.csv', 'Ruta relativa simple'); }
+        function testPath2() { testPath('./datasets/sample_data.csv', 'Ruta relativa con ./'); }
+        function testPath3() { testPath('/datasets/sample_data.csv', 'Ruta absoluta desde raíz'); }
+        function testPath4() { testPath('../datasets/sample_data.csv', 'Ruta relativa con ../'); }
+
+        // Auto test on load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('📍 Ubicación actual: ' + window.location.href, 'info');
+            log('📍 Base URL: ' + window.location.origin, 'info');
+            log('\n⏳ Ejecutando pruebas automáticas...\n', 'info');
+
+            setTimeout(() => {
+                testPath1();
+                setTimeout(() => testPath2(), 500);
+                setTimeout(() => testPath3(), 1000);
+                setTimeout(() => testPath4(), 1500);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
