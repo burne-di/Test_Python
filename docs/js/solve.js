@@ -483,7 +483,9 @@ async function loadDatasetIntoPyodide(filename) {
         // Fetch the dataset file
         const response = await fetch(`datasets/${filename}`);
         if (!response.ok) {
-            console.warn(`Dataset ${filename} not found, skipping...`);
+            console.warn(`Dataset ${filename} not found at path: datasets/${filename}`);
+            // Create an informative message for the user
+            console.warn('Si estás en GitHub Pages, verifica que la carpeta datasets/ esté en el directorio correcto.');
             return;
         }
 
@@ -492,9 +494,11 @@ async function loadDatasetIntoPyodide(filename) {
         // Write file to Pyodide's virtual filesystem
         pyodideInstance.FS.writeFile(filename, content);
 
-        console.log(`Dataset ${filename} loaded into Pyodide filesystem`);
+        console.log(`✓ Dataset ${filename} loaded successfully into Pyodide filesystem`);
     } catch (error) {
-        console.warn(`Could not load dataset ${filename}:`, error);
+        console.error(`✗ Error loading dataset ${filename}:`, error);
+        // Show user-friendly error
+        displayError(new Error(`No se pudo cargar el dataset "${filename}". Verifica que el archivo exista en la carpeta datasets/.`));
     }
 }
 
@@ -689,21 +693,37 @@ async function getDatasetFromSQL() {
 async function loadDatasetCSV(filename) {
     try {
         const response = await fetch(`datasets/${filename}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: No se encontró el archivo ${filename}`);
+        }
+
         const text = await response.text();
 
+        if (!text || text.trim().length === 0) {
+            throw new Error(`El archivo ${filename} está vacío`);
+        }
+
         const lines = text.trim().split('\n');
-        const headers = lines[0].split(',');
+        if (lines.length === 0) {
+            throw new Error(`El archivo ${filename} no contiene datos`);
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim());
         const rows = lines.slice(1).map(line => {
             // Simple CSV parsing (doesn't handle quoted commas)
-            return line.split(',');
+            return line.split(',').map(cell => cell.trim());
         });
+
+        console.log(`✓ Dataset ${filename} cargado correctamente: ${rows.length} filas, ${headers.length} columnas`);
 
         return {
             columns: headers,
             rows: rows
         };
     } catch (error) {
-        throw new Error(`Could not load ${filename}`);
+        console.error(`✗ Error cargando dataset ${filename}:`, error);
+        throw new Error(`No se pudo cargar el dataset "${filename}". ${error.message}`);
     }
 }
 
@@ -993,11 +1013,35 @@ function addMessageToChat(text, type) {
             </span>
         `;
     } else if (type === 'assistant') {
-        // Render markdown-style formatting
-        const formattedText = text
-            .replace(/`([^`]+)`/g, '<code>$1</code>')
-            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n/g, '<br>');
+        // Enhanced markdown rendering with code blocks and apply button
+        let formattedText = text;
+
+        // Process multi-line code blocks with ``` (triple backticks)
+        formattedText = formattedText.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+            const codeId = `code-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            return `
+                <div class="ai-code-block-wrapper">
+                    <button class="ai-apply-code-btn" onclick="applyAICodeToEditor('${codeId}')">
+                        ✨ Aplicar al código
+                    </button>
+                    <pre><code id="${codeId}">${escapeHtml(code.trim())}</code></pre>
+                </div>
+            `;
+        });
+
+        // Process inline code
+        formattedText = formattedText.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Process bold text
+        formattedText = formattedText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+        // Process bullet points
+        formattedText = formattedText.replace(/^- (.+)$/gm, '<li>$1</li>');
+        formattedText = formattedText.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+        // Process line breaks
+        formattedText = formattedText.replace(/\n/g, '<br>');
+
         messageDiv.innerHTML = formattedText;
     } else {
         messageDiv.textContent = text;
@@ -1007,6 +1051,79 @@ function addMessageToChat(text, type) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
     return messageId;
+}
+
+// Helper: Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Apply AI-suggested code to the editor
+function applyAICodeToEditor(codeId) {
+    const codeElement = document.getElementById(codeId);
+    if (!codeElement || !editor) {
+        alert('Error: No se pudo obtener el código o el editor no está disponible');
+        return;
+    }
+
+    const code = codeElement.textContent;
+
+    // Ask user for confirmation
+    const action = confirm('¿Quieres REEMPLAZAR todo el código actual o AGREGAR este código al final?\\n\\nOK = Reemplazar | Cancelar = Ver opciones');
+
+    if (action === true) {
+        // Replace all code
+        editor.setValue(code);
+
+        // Visual feedback
+        const btn = codeElement.parentElement.querySelector('.ai-apply-code-btn');
+        if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ Aplicado';
+            btn.classList.add('applied');
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('applied');
+            }, 2000);
+        }
+    } else {
+        // Show options
+        const choice = prompt('Elige una opción:\\n1 = Reemplazar todo\\n2 = Agregar al final\\n3 = Insertar en posición del cursor\\n\\nEscribe el número (1, 2 o 3):');
+
+        if (choice === '1') {
+            editor.setValue(code);
+        } else if (choice === '2') {
+            const currentCode = editor.getValue();
+            editor.setValue(currentCode + '\\n\\n' + code);
+        } else if (choice === '3') {
+            const position = editor.getPosition();
+            editor.executeEdits('', [{
+                range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
+                text: code
+            }]);
+        } else {
+            return; // Cancelled
+        }
+
+        // Visual feedback
+        const btn = codeElement.parentElement.querySelector('.ai-apply-code-btn');
+        if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ Aplicado';
+            btn.classList.add('applied');
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('applied');
+            }, 2000);
+        }
+    }
 }
 
 // Helper: Remove message from chat

@@ -918,6 +918,211 @@
           "assertion": "can_process_file_larger_than_memory == True"
         }
       ]
+    },
+    {
+      "id": "python_011",
+      "title": "Time Series Joins con merge_asof",
+      "category": "python",
+      "difficulty": "ssr",
+      "description": "Realiza joins de time series usando merge_asof para combinar datos de trades y quotes con timestamps imperfectos.",
+      "timeLimit": 35,
+      "dataset": "sample_data.csv",
+      "instructions": "Dado dos DataFrames:\n- trades: transacciones con timestamp y precio\n- quotes: cotizaciones con timestamp, bid y ask\n\nUsa merge_asof para:\n1. Encontrar la cotización más cercana (hacia atrás) para cada trade\n2. Calcular el spread (ask - bid) en el momento del trade\n3. Identificar trades con spread anormal (> 2 desviaciones estándar)\n4. Calcular latencia promedio entre quote y trade",
+      "starterCode": "import pandas as pd\nimport numpy as np\n\ndef analyze_trades_with_quotes(trades_df, quotes_df):\n    \"\"\"\n    Combina trades con quotes usando merge_asof\n    \n    Args:\n        trades_df: DataFrame con columnas ['timestamp', 'trade_id', 'price', 'quantity']\n        quotes_df: DataFrame con columnas ['timestamp', 'bid', 'ask']\n    \n    Returns:\n        DataFrame con análisis completo\n    \"\"\"\n    # Asegurar que timestamps estén ordenados y son datetime\n    trades_df['timestamp'] = pd.to_datetime(trades_df['timestamp'])\n    quotes_df['timestamp'] = pd.to_datetime(quotes_df['timestamp'])\n    \n    # Tu código aquí\n    \n    pass\n\n# Test\ntrades = pd.DataFrame({\n    'timestamp': pd.date_range('2024-01-01 09:00:00', periods=5, freq='1s'),\n    'trade_id': range(1, 6),\n    'price': [100.5, 100.6, 100.4, 100.7, 100.5],\n    'quantity': [100, 200, 150, 300, 100]\n})\n\nquotes = pd.DataFrame({\n    'timestamp': pd.date_range('2024-01-01 08:59:59', periods=10, freq='500ms'),\n    'bid': np.random.uniform(100.0, 100.5, 10),\n    'ask': np.random.uniform(100.5, 101.0, 10)\n})\n\nresult = analyze_trades_with_quotes(trades, quotes)\nprint(result)",
+      "knowledge": [
+        {
+          "concept": "pd.merge_asof() - Time Series Joins",
+          "description": "merge_asof es como un merge pero para series temporales. Une filas basándose en el timestamp más cercano en lugar de exacto. Esencial para combinar datos financieros, IoT, logs.",
+          "syntax": "pd.merge_asof(left, right, on='timestamp', direction='backward')",
+          "example": "import pandas as pd\n\ntrades = pd.DataFrame({\n    'time': pd.to_datetime(['2024-01-01 09:00:00', '2024-01-01 09:00:02']),\n    'price': [100.5, 100.7]\n})\n\nquotes = pd.DataFrame({\n    'time': pd.to_datetime(['2024-01-01 08:59:59', '2024-01-01 09:00:01']),\n    'bid': [100.0, 100.2],\n    'ask': [100.5, 100.6]\n})\n\n# Unir usando el quote más reciente antes del trade\nresult = pd.merge_asof(trades, quotes, on='time', direction='backward')\nprint(result)",
+          "output": "                 time  price    bid    ask\n0 2024-01-01 09:00:00  100.5  100.0  100.5\n1 2024-01-01 09:00:02  100.7  100.2  100.6",
+          "note": "direction='backward' busca hacia atrás, 'forward' hacia adelante, 'nearest' al más cercano. IMPORTANTE: ambos DataFrames deben estar ordenados por el timestamp."
+        },
+        {
+          "concept": "Cálculo de Spread en Trading",
+          "description": "El spread es la diferencia entre el precio de venta (ask) y compra (bid). Un spread grande indica baja liquidez o alta volatilidad.",
+          "syntax": "spread = ask_price - bid_price\nspread_pct = (spread / bid_price) * 100",
+          "example": "import pandas as pd\n\ndf = pd.DataFrame({\n    'bid': [100.0, 100.2, 100.1],\n    'ask': [100.5, 100.7, 100.4]\n})\n\ndf['spread'] = df['ask'] - df['bid']\ndf['spread_pct'] = (df['spread'] / df['bid']) * 100\nprint(df)",
+          "output": "    bid    ask  spread  spread_pct\n0  100.0  100.5     0.5        0.50\n1  100.2  100.7     0.5        0.50\n2  100.1  100.4     0.3        0.30",
+          "note": "Spreads anormalmente grandes pueden indicar problemas de liquidez o errores de datos."
+        },
+        {
+          "concept": "Detección de Anomalías con Desviación Estándar",
+          "description": "Valores que están más de 2-3 desviaciones estándar de la media son considerados outliers o anomalías.",
+          "syntax": "mean = df['value'].mean()\nstd = df['value'].std()\nis_anomaly = (df['value'] - mean).abs() > (2 * std)",
+          "example": "import pandas as pd\nimport numpy as np\n\ndf = pd.DataFrame({\n    'spread': [0.5, 0.48, 0.52, 0.49, 2.5, 0.51]\n})\n\nmean = df['spread'].mean()\nstd = df['spread'].std()\ndf['z_score'] = (df['spread'] - mean) / std\ndf['is_anomaly'] = df['z_score'].abs() > 2\n\nprint(df)",
+          "output": "   spread   z_score  is_anomaly\n0    0.50     -0.34       False\n1    0.48     -0.37       False\n2    0.52     -0.31       False\n3    0.49     -0.36       False\n4    2.50      2.69        True\n5    0.51     -0.32       False",
+          "note": "Z-score = (valor - media) / desviación_estándar. |Z| > 2 indica anomalía (95% confianza), |Z| > 3 indica anomalía fuerte (99.7% confianza)."
+        },
+        {
+          "concept": "Cálculo de Latencia con Timedelta",
+          "description": "La latencia es la diferencia de tiempo entre dos eventos. En Pandas, restar timestamps da un Timedelta que se puede convertir a segundos, milisegundos, etc.",
+          "syntax": "latency = (time2 - time1).dt.total_seconds()",
+          "example": "import pandas as pd\n\ndf = pd.DataFrame({\n    'quote_time': pd.to_datetime(['2024-01-01 09:00:00.000', '2024-01-01 09:00:01.500']),\n    'trade_time': pd.to_datetime(['2024-01-01 09:00:00.250', '2024-01-01 09:00:01.750'])\n})\n\ndf['latency_ms'] = (df['trade_time'] - df['quote_time']).dt.total_seconds() * 1000\nprint(df)",
+          "output": "           quote_time          trade_time  latency_ms\n0 2024-01-01 09:00:00 2024-01-01 09:00:00.250       250.0\n1 2024-01-01 09:00:01.500 2024-01-01 09:00:01.750       250.0",
+          "note": ".dt.total_seconds() convierte a segundos decimales. Multiplica por 1000 para milisegundos, 1000000 para microsegundos."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# Trades\ntimestamp            trade_id  price\n09:00:00             1         100.5\n09:00:02             2         100.7\n\n# Quotes\ntimestamp            bid      ask\n08:59:59             100.0    100.5\n09:00:01             100.2    100.7",
+          "output": "timestamp   trade_id  price  bid    ask   spread  latency_ms  is_anomaly\n09:00:00    1         100.5  100.0  100.5  0.5    1000        False\n09:00:02    2         100.7  100.2  100.7  0.5    1000        False",
+          "explanation": "Cada trade se une con el quote más reciente anterior. El spread se calcula y se detectan anomalías."
+        }
+      ],
+      "hints": [
+        "💡 <strong>Pista 1 - merge_asof Setup:</strong><br>Ordena ambos DataFrames por timestamp ANTES de merge_asof:<br><code>trades_sorted = trades_df.sort_values('timestamp')<br>quotes_sorted = quotes_df.sort_values('timestamp')</code><br><br>Luego usa:<br><code>merged = pd.merge_asof(trades_sorted, quotes_sorted, on='timestamp', direction='backward')</code>",
+        "💡 <strong>Pista 2 - Calcular Spread:</strong><br>Después del merge tendrás columnas bid y ask:<br><code>merged['spread'] = merged['ask'] - merged['bid']<br>merged['spread_pct'] = (merged['spread'] / merged['bid']) * 100</code>",
+        "💡 <strong>Pista 3 - Detectar Anomalías:</strong><br>Calcula z-score del spread:<br><code>mean_spread = merged['spread'].mean()<br>std_spread = merged['spread'].std()<br>merged['z_score'] = (merged['spread'] - mean_spread) / std_spread<br>merged['is_anomaly'] = merged['z_score'].abs() > 2</code>"
+      ],
+      "testCases": [
+        {
+          "description": "Debe usar merge_asof correctamente",
+          "expectedColumns": ["timestamp", "trade_id", "price", "bid", "ask", "spread"]
+        },
+        {
+          "description": "Debe calcular spread correctamente",
+          "assertion": "all(result['spread'] == result['ask'] - result['bid'])"
+        }
+      ]
+    },
+    {
+      "id": "python_012",
+      "title": "Robust CSV Parsing con Manejo de Errores",
+      "category": "python",
+      "difficulty": "ssr",
+      "description": "Implementa un parser robusto de CSV que maneje filas corruptas, múltiples encodings, y genere un reporte detallado de calidad.",
+      "timeLimit": 40,
+      "dataset": "raw_customer_data.csv",
+      "instructions": "Crea una función que:\n1. Intente múltiples encodings (utf-8, latin-1, cp1252) automáticamente\n2. Maneje filas con número incorrecto de columnas\n3. Detecte y reporte filas duplicadas\n4. Identifique columnas con alta tasa de valores nulos (>30%)\n5. Valide tipos de datos esperados y reporte inconsistencias\n6. Genere un reporte JSON con métricas de calidad\n\nBonus: Usa chunksize para procesar archivos grandes (>500MB).",
+      "starterCode": "import pandas as pd\nimport chardet\nimport json\nfrom pathlib import Path\n\nclass RobustCSVParser:\n    def __init__(self, filepath, expected_columns=None, chunksize=None):\n        \"\"\"\n        Args:\n            filepath: Path al archivo CSV\n            expected_columns: Lista de nombres de columnas esperadas\n            chunksize: Número de filas por chunk (None = leer todo)\n        \"\"\"\n        self.filepath = filepath\n        self.expected_columns = expected_columns\n        self.chunksize = chunksize\n        self.quality_report = {\n            'total_rows': 0,\n            'valid_rows': 0,\n            'corrupted_rows': 0,\n            'duplicate_rows': 0,\n            'encoding_used': None,\n            'columns_high_nulls': [],\n            'type_mismatches': {}\n        }\n    \n    def detect_encoding(self):\n        \"\"\"Detecta el encoding del archivo\"\"\"\n        # Tu código aquí\n        pass\n    \n    def parse(self):\n        \"\"\"Parse el CSV con manejo robusto de errores\"\"\"\n        # Tu código aquí\n        pass\n    \n    def generate_report(self):\n        \"\"\"Genera reporte de calidad en JSON\"\"\"\n        return json.dumps(self.quality_report, indent=2)\n\n# Ejemplo de uso\nparser = RobustCSVParser('corrupted_data.csv', expected_columns=['id', 'name', 'email', 'age'])\ndf_clean = parser.parse()\nprint(parser.generate_report())",
+      "knowledge": [
+        {
+          "concept": "Detección de Encoding con chardet",
+          "description": "chardet detecta automáticamente el encoding de un archivo de texto. Esencial cuando recibes archivos de diferentes fuentes con encodings desconocidos.",
+          "syntax": "import chardet\n\nwith open(file, 'rb') as f:\n    result = chardet.detect(f.read())\n    encoding = result['encoding']",
+          "example": "import chardet\n\n# Detectar encoding\nwith open('data.csv', 'rb') as f:\n    raw_data = f.read(10000)  # Lee primeros 10KB\n    result = chardet.detect(raw_data)\n    \nprint(f\"Encoding: {result['encoding']}\")\nprint(f\"Confidence: {result['confidence']}\")\n\n# Usar el encoding detectado\ndf = pd.read_csv('data.csv', encoding=result['encoding'])",
+          "output": "Encoding: utf-8\nConfidence: 0.99",
+          "note": "Lee solo una muestra (10-100KB) para velocidad. Si confidence < 0.7, intenta múltiples encodings manualmente."
+        },
+        {
+          "concept": "pd.read_csv() con error_bad_lines y on_bad_lines",
+          "description": "Maneja filas corruptas en CSVs usando on_bad_lines para skipear o procesar errores sin que falle todo el parse.",
+          "syntax": "pd.read_csv(file, on_bad_lines='skip')  # Pandas >= 1.3\n# o\npd.read_csv(file, error_bad_lines=False)  # Pandas < 1.3",
+          "example": "import pandas as pd\nimport warnings\n\n# Contar filas malas\nbad_lines = []\n\ndef handle_bad_line(bad_line):\n    bad_lines.append(bad_line)\n    return None\n\ndf = pd.read_csv(\n    'corrupted.csv',\n    on_bad_lines=handle_bad_line,\n    engine='python'\n)\n\nprint(f\"Filas válidas: {len(df)}\")\nprint(f\"Filas corruptas: {len(bad_lines)}\")",
+          "output": "Filas válidas: 950\nFilas corruptas: 50",
+          "note": "engine='python' es más lento pero más flexible para manejo de errores. engine='c' (default) es más rápido pero menos tolerante."
+        },
+        {
+          "concept": "Try/Except con Múltiples Encodings",
+          "description": "Intenta parsear un archivo con múltiples encodings en orden de probabilidad hasta que uno funcione.",
+          "syntax": "for enc in ['utf-8', 'latin-1', 'cp1252']:\n    try:\n        df = pd.read_csv(file, encoding=enc)\n        break\n    except UnicodeDecodeError:\n        continue",
+          "example": "import pandas as pd\n\ndef read_with_fallback(filepath):\n    encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']\n    \n    for encoding in encodings:\n        try:\n            df = pd.read_csv(filepath, encoding=encoding)\n            print(f\"✓ Éxito con encoding: {encoding}\")\n            return df, encoding\n        except (UnicodeDecodeError, Exception) as e:\n            print(f\"✗ Falló {encoding}: {str(e)[:50]}\")\n            continue\n    \n    raise ValueError(\"No se pudo leer con ningún encoding\")\n\ndf, used_encoding = read_with_fallback('data.csv')",
+          "output": "✗ Falló utf-8: 'utf-8' codec can't decode byte 0xe9 in...\n✓ Éxito con encoding: latin-1",
+          "note": "Orden típico: utf-8 (moderno), latin-1 (Europa occidental), cp1252 (Windows), iso-8859-1."
+        },
+        {
+          "concept": "Chunked Reading con pd.read_csv(chunksize)",
+          "description": "Lee archivos CSV en chunks para procesar archivos más grandes que la RAM disponible.",
+          "syntax": "for chunk in pd.read_csv(file, chunksize=10000):\n    process(chunk)",
+          "example": "import pandas as pd\n\n# Procesar archivo de 10GB en chunks de 100K filas\ntotal_rows = 0\ntotal_sales = 0\n\nfor chunk in pd.read_csv('huge_file.csv', chunksize=100000):\n    total_rows += len(chunk)\n    total_sales += chunk['sales'].sum()\n    \n    # Opcionalmente guardar resultados agregados\n    # chunk_result.to_csv(f'processed_{total_rows}.csv')\n\nprint(f\"Procesadas {total_rows} filas\")\nprint(f\"Ventas totales: ${total_sales:,.2f}\")",
+          "output": "Procesadas 5000000 filas\nVentas totales: $15,234,567.89",
+          "note": "chunksize devuelve un iterador, no un DataFrame. Ideal para agregaciones pero no para operaciones que requieren ver todo el dataset (ej: percentiles globales)."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# Archivo corrupto con problemas\ncorrupted.csv (latin-1 encoded):\nid,name,email,age\n1,José,jose@test.com,25\n2,María,maria@test  # Fila corrupta - faltan columnas\n3,José,jose@test.com,25  # Duplicado\n4,Ana,ana@test.com,invalid  # age no es número",
+          "output": "# DataFrame limpio\nid  name   email            age\n1   José   jose@test.com    25\n4   Ana    ana@test.com     NaN\n\n# Reporte\n{\n  \"total_rows\": 4,\n  \"valid_rows\": 2,\n  \"corrupted_rows\": 1,\n  \"duplicate_rows\": 1,\n  \"encoding_used\": \"latin-1\",\n  \"type_mismatches\": {\"age\": [\"Row 4: 'invalid' is not numeric\"]}\n}",
+          "explanation": "El parser detecta el encoding correcto, skipea filas corruptas, elimina duplicados y reporta problemas de tipo."
+        }
+      ],
+      "hints": [
+        "💡 <strong>Pista 1 - Detectar Encoding:</strong><br>Usa chardet para detectar automáticamente:<br><code>import chardet<br><br>with open(filepath, 'rb') as f:<br>    raw = f.read(50000)  # Lee 50KB<br>    result = chardet.detect(raw)<br>    encoding = result['encoding']</code>",
+        "💡 <strong>Pista 2 - Múltiples Encodings Fallback:</strong><br>Si chardet falla, intenta lista manual:<br><code>encodings = ['utf-8', 'latin-1', 'cp1252']<br>for enc in encodings:<br>    try:<br>        df = pd.read_csv(filepath, encoding=enc)<br>        break<br>    except UnicodeDecodeError:<br>        continue</code>",
+        "💡 <strong>Pista 3 - Manejar Filas Corruptas:</strong><br>Usa on_bad_lines para skipear:<br><code>df = pd.read_csv(<br>    filepath,<br>    encoding=encoding,<br>    on_bad_lines='skip',<br>    engine='python'<br>)</code><br><br>Para contar las filas skippeadas, usa un callback custom."
+      ],
+      "testCases": [
+        {
+          "description": "Debe detectar encoding correctamente",
+          "assertion": "quality_report['encoding_used'] in ['utf-8', 'latin-1', 'cp1252']"
+        },
+        {
+          "description": "Debe manejar filas corruptas",
+          "assertion": "quality_report['corrupted_rows'] > 0"
+        }
+      ]
+    },
+    {
+      "id": "python_013",
+      "title": "Log Parsing con Expresiones Regulares",
+      "category": "python",
+      "difficulty": "ssr",
+      "description": "Extrae información estructurada de logs no estructurados usando regex. Parsea logs de servidor web, extrae IPs, URLs, status codes, y genera métricas.",
+      "timeLimit": 35,
+      "dataset": "sample_data.csv",
+      "instructions": "Dado un archivo de logs en formato Apache/Nginx:\n1. Extrae: IP, timestamp, método HTTP, URL, status code, bytes, user agent\n2. Identifica patrones de error (4xx, 5xx)\n3. Detecta IPs con alta tasa de errores (>20%)\n4. Extrae top 10 URLs más accedidas\n5. Identifica bots vs usuarios reales por user agent\n6. Genera reporte con métricas de tráfico",
+      "starterCode": "import re\nimport pandas as pd\nfrom collections import Counter, defaultdict\nfrom datetime import datetime\n\nclass LogParser:\n    # Patrón de regex para logs Apache/Nginx\n    LOG_PATTERN = r'(?P<ip>[\\d\\.]+) .* \\[(?P<timestamp>[^\\]]+)\\] \"(?P<method>\\w+) (?P<url>[^\"]+) [^\"]+\" (?P<status>\\d{3}) (?P<bytes>\\d+) \"[^\"]*\" \"(?P<user_agent>[^\"]+)\"'\n    \n    def __init__(self, log_file):\n        self.log_file = log_file\n        self.parsed_logs = []\n    \n    def parse(self):\n        \"\"\"Parse el archivo de logs\"\"\"\n        # Tu código aquí\n        pass\n    \n    def get_error_ips(self, threshold=0.2):\n        \"\"\"Retorna IPs con tasa de error > threshold\"\"\"\n        # Tu código aquí\n        pass\n    \n    def get_top_urls(self, n=10):\n        \"\"\"Retorna las top N URLs más accedidas\"\"\"\n        # Tu código aquí\n        pass\n    \n    def classify_user_agent(self, user_agent):\n        \"\"\"Clasifica si es bot o usuario real\"\"\"\n        # Tu código aquí\n        pass\n    \n    def generate_metrics(self):\n        \"\"\"Genera reporte de métricas\"\"\"\n        # Tu código aquí\n        pass\n\n# Ejemplo de uso\nparser = LogParser('access.log')\ndf = parser.parse()\nprint(parser.generate_metrics())",
+      "knowledge": [
+        {
+          "concept": "Regex Named Groups (?P<name>...)",
+          "description": "Los grupos nombrados en regex permiten capturar y extraer partes específicas de un patrón con nombres descriptivos en lugar de números.",
+          "syntax": "pattern = r'(?P<name>pattern)'\nmatch = re.search(pattern, text)\nvalue = match.group('name')",
+          "example": "import re\n\nlog_line = '192.168.1.1 - - [01/Jan/2024:12:00:00] \"GET /api/users HTTP/1.1\" 200 1234'\n\npattern = r'(?P<ip>[\\d\\.]+).*\"(?P<method>\\w+) (?P<url>\\S+).*\" (?P<status>\\d{3})'\n\nmatch = re.search(pattern, log_line)\nif match:\n    print(f\"IP: {match.group('ip')}\")\n    print(f\"Method: {match.group('method')}\")\n    print(f\"URL: {match.group('url')}\")\n    print(f\"Status: {match.group('status')}\")",
+          "output": "IP: 192.168.1.1\nMethod: GET\nURL: /api/users\nStatus: 200",
+          "note": "(?P<name>...) es más legible que usar índices numéricos. También permite usar .groupdict() para obtener un diccionario."
+        },
+        {
+          "concept": "Regex Character Classes y Quantifiers",
+          "description": "Las clases de caracteres definen conjuntos de caracteres válidos. Los quantifiers controlan cuántas repeticiones.",
+          "syntax": "\\d = dígito [0-9]\n\\w = palabra [a-zA-Z0-9_]\n\\s = whitespace\n. = cualquier carácter\n+ = 1 o más\n* = 0 o más\n{n,m} = entre n y m veces",
+          "example": "import re\n\n# Extraer email\nemail_pattern = r'[\\w.-]+@[\\w.-]+\\.\\w+'\nemail = re.search(email_pattern, 'Contact: user@example.com').group()\nprint(f\"Email: {email}\")\n\n# Extraer IP\nip_pattern = r'\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}'\nip = re.search(ip_pattern, 'IP: 192.168.1.1').group()\nprint(f\"IP: {ip}\")\n\n# Extraer código de error HTTP\nerror_pattern = r'[45]\\d{2}'  # 4xx o 5xx\nerror = re.search(error_pattern, 'Status: 404').group()\nprint(f\"Error: {error}\")",
+          "output": "Email: user@example.com\nIP: 192.168.1.1\nError: 404",
+          "note": "[\\d\\.] = dígito O punto. Use \\\\ para escapar caracteres especiales. + es greedy, +? es non-greedy."
+        },
+        {
+          "concept": "re.findall() vs re.search() vs re.match()",
+          "description": "Diferentes funciones de regex para diferentes casos de uso.",
+          "syntax": "re.search(pattern, text)  # Busca en cualquier parte\nre.match(pattern, text)   # Solo al inicio\nre.findall(pattern, text)  # Todas las ocurrencias",
+          "example": "import re\n\ntext = \"Errors: 404, 500, 403 in logs\"\n\n# search: encuentra la primera\nfirst = re.search(r'\\d{3}', text)\nprint(f\"First: {first.group()}\")\n\n# findall: encuentra todas\nall_codes = re.findall(r'\\d{3}', text)\nprint(f\"All: {all_codes}\")\n\n# match: solo al inicio (falla aquí)\nmatch = re.match(r'\\d{3}', text)\nprint(f\"Match: {match}\")  # None",
+          "output": "First: 404\nAll: ['404', '500', '403']\nMatch: None",
+          "note": "Usa findall() para extraer múltiples ocurrencias. Usa finditer() si necesitas objetos Match con posiciones."
+        },
+        {
+          "concept": "defaultdict y Counter para Agregaciones",
+          "description": "defaultdict evita KeyError al agregar a diccionarios. Counter cuenta ocurrencias automáticamente.",
+          "syntax": "from collections import defaultdict, Counter\n\ncounts = Counter(items)\ngroups = defaultdict(list)",
+          "example": "from collections import defaultdict, Counter\n\n# Counter para contar URLs\nurls = ['/home', '/api', '/home', '/api', '/home']\nurl_counts = Counter(urls)\nprint(f\"Top URLs: {url_counts.most_common(2)}\")\n\n# defaultdict para agrupar por IP\nerrors_by_ip = defaultdict(list)\nerrors_by_ip['192.168.1.1'].append(404)\nerrors_by_ip['192.168.1.1'].append(500)\nerrors_by_ip['10.0.0.1'].append(403)\n\nprint(f\"Errors by IP: {dict(errors_by_ip)}\")",
+          "output": "Top URLs: [('/home', 3), ('/api', 2)]\nErrors by IP: {'192.168.1.1': [404, 500], '10.0.0.1': [403]}",
+          "note": "Counter es un dict especializado para conteos. most_common(n) retorna los top N. defaultdict(list) crea listas automáticamente."
+        }
+      ],
+      "examples": [
+        {
+          "input": "# access.log\n192.168.1.1 - - [01/Jan/2024:12:00:00] \"GET /api/users HTTP/1.1\" 200 1234 \"\" \"Mozilla/5.0\"\n192.168.1.1 - - [01/Jan/2024:12:00:01] \"POST /api/login HTTP/1.1\" 401 512 \"\" \"Mozilla/5.0\"\n10.0.0.1 - - [01/Jan/2024:12:00:02] \"GET /robots.txt HTTP/1.1\" 200 100 \"\" \"Googlebot/2.1\"",
+          "output": "# Parsed DataFrame\nip           method  url          status  bytes  is_bot\n192.168.1.1  GET     /api/users   200     1234   False\n192.168.1.1  POST    /api/login   401     512    False\n10.0.0.1     GET     /robots.txt  200     100    True\n\n# Métricas\n{\n  \"total_requests\": 3,\n  \"error_rate\": 0.33,\n  \"bot_traffic_pct\": 0.33,\n  \"top_urls\": [['/api/users', 1], ['/api/login', 1]],\n  \"high_error_ips\": ['192.168.1.1']\n}",
+          "explanation": "El parser extrae campos estructurados, detecta bots por user agent y calcula métricas de tráfico y errores."
+        }
+      ],
+      "hints": [
+        "💡 <strong>Pista 1 - Regex Pattern:</strong><br>Usa grupos nombrados para capturar campos:<br><code>pattern = r'(?P<ip>[\\d\\.]+) .* \\[(?P<timestamp>[^\\]]+)\\] \"(?P<method>\\w+) (?P<url>\\S+) [^\"]+\" (?P<status>\\d{3})'</code><br><br>Aplica con:<br><code>for line in file:<br>    match = re.search(pattern, line)<br>    if match:<br>        data.append(match.groupdict())</code>",
+        "💡 <strong>Pista 2 - Detectar Errores por IP:</strong><br>Agrupa por IP y calcula tasa de error:<br><code>from collections import defaultdict<br><br>ip_stats = defaultdict(lambda: {'total': 0, 'errors': 0})<br>for log in parsed_logs:<br>    ip = log['ip']<br>    ip_stats[ip]['total'] += 1<br>    if int(log['status']) >= 400:<br>        ip_stats[ip]['errors'] += 1</code>",
+        "💡 <strong>Pista 3 - Detectar Bots:</strong><br>Busca keywords en user agent:<br><code>bot_keywords = ['bot', 'crawler', 'spider', 'scraper']<br>is_bot = any(keyword in user_agent.lower() for keyword in bot_keywords)</code><br><br>Algunos bots comunes: Googlebot, Bingbot, YandexBot, etc."
+      ],
+      "testCases": [
+        {
+          "description": "Debe extraer todos los campos correctamente",
+          "expectedColumns": ["ip", "timestamp", "method", "url", "status", "bytes", "user_agent"]
+        },
+        {
+          "description": "Debe identificar códigos de error",
+          "assertion": "any(int(status) >= 400 for status in df['status'])"
+        },
+        {
+          "description": "Debe detectar bots correctamente",
+          "assertion": "'is_bot' in df.columns"
+        }
+      ]
     }
   ]
 }

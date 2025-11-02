@@ -59,7 +59,7 @@ class AIAssistant {
                         ],
                         generationConfig: {
                             temperature: 0.7,
-                            maxOutputTokens: 1000,
+                            maxOutputTokens: 2048,
                         }
                     })
                 }
@@ -116,17 +116,26 @@ ${exercise?.instructions || 'N/A'}
         }
 
         prompt += `\n\nREGLAS:
-1. Da respuestas concisas y específicas (máximo 3-4 líneas)
+1. Da respuestas concisas y específicas
 2. NO des la solución completa, solo hints y explicaciones
 3. Si hay error, explica QUÉ está mal y POR QUÉ
 4. Sugiere documentación relevante cuando sea apropiado
 5. Usa ejemplos simples para ilustrar conceptos
 6. Si el usuario pregunta "dame la solución", responde con hints más específicos pero NO el código completo
 7. Fomenta el aprendizaje, no copies y pegues
+8. Si sugieres código de ejemplo, usa bloques de código con triple backtick y el lenguaje
 
 FORMATO DE RESPUESTA:
-- Usa markdown para código: \`código\`
-- Usa bullet points para listas
+- Para código inline: usa \`código\`
+- Para bloques de código multilínea: usa triple backticks
+  Ejemplo:
+  \`\`\`python
+  def ejemplo():
+      return "código aquí"
+  \`\`\`
+- Para código SQL usa \`\`\`sql
+- Para listas usa bullet points con guión (-)
+- Usa **negrita** para enfatizar conceptos importantes
 - Sé amigable y motivador`;
 
         return prompt;

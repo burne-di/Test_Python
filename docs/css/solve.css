@@ -1316,6 +1316,8 @@
     max-width: 85%;
     animation: fadeIn 0.3s ease;
     line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 @keyframes fadeIn {
@@ -1341,6 +1343,114 @@
     color: #333;
     align-self: flex-start;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 500px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.ai-message-assistant::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ai-message-assistant::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.ai-message-assistant::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.ai-message-assistant::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Better code block styling in AI messages */
+.ai-message-assistant code {
+    background: #f1f5f9;
+    color: #e11d48;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Courier New', Monaco, monospace;
+    font-size: 0.9em;
+}
+
+.ai-message-assistant pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+    font-family: 'Courier New', Monaco, monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.ai-message-assistant pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+}
+
+.ai-message-assistant strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.ai-message-assistant ul, .ai-message-assistant ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.ai-message-assistant li {
+    margin: 0.25rem 0;
+}
+
+/* Apply code button in AI messages */
+.ai-code-block-wrapper {
+    position: relative;
+    margin: 0.5rem 0;
+}
+
+.ai-apply-code-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0.9;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.ai-apply-code-btn:hover {
+    background: #5568d3;
+    opacity: 1;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.ai-apply-code-btn:active {
+    transform: translateY(0);
+}
+
+.ai-apply-code-btn.applied {
+    background: #10b981;
+}
+
+.ai-apply-code-btn.applied:hover {
+    background: #059669;
 }
 
 .ai-message-system {

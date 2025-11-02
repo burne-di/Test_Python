@@ -208,6 +208,846 @@
         "aggfunc='sum' suma los valores"
       ],
       "successMessage": "¡Excelente! Pivot tables son poderosas para análisis."
+    },
+
+    {
+      "id": "learn_011",
+      "title": "Python Files - Leer con Try/Except",
+      "instruction": "Lee el archivo 'sample_data.csv'. Si hay error, captura la excepción y asigna None a la variable 'data'.",
+      "theory": "try/except permite manejar errores sin que el programa falle. Es esencial en pipelines de datos para manejar archivos faltantes o corruptos. Sintaxis: try: código_que_puede_fallar except Exception as e: manejar_error",
+      "syntax": "try:\n    data = ...\nexcept FileNotFoundError:\n    data = None",
+      "example": {
+        "code": "# Intentar abrir archivo\ntry:\n    with open('datos.txt', 'r') as f:\n        content = f.read()\nexcept FileNotFoundError:\n    content = 'Archivo no encontrado'\nprint(content)",
+        "explanation": "Si datos.txt no existe, asigna mensaje de error en lugar de fallar"
+      },
+      "starterCode": "# Intenta leer el archivo\ntry:\n    with open('sample_data.csv', 'r') as f:\n        data = f.read()\nexcept ___:\n    data = None\n\n# Imprime resultado\nif data is None:\n    print('Error: archivo no encontrado')\nelse:\n    print('Archivo leído correctamente')",
+      "solution": "try:\n    with open('sample_data.csv', 'r') as f:\n        data = f.read()\nexcept FileNotFoundError:\n    data = None",
+      "test": "data is not None or data is None",
+      "hints": [
+        "Usa except FileNotFoundError para capturar archivos faltantes",
+        "Asigna data = None dentro del except",
+        "El bloque try debe contener el código que puede fallar"
+      ],
+      "successMessage": "¡Bien! Error handling es crucial en Data Engineering."
+    },
+
+    {
+      "id": "learn_012",
+      "title": "Python Regex - Extraer Emails",
+      "instruction": "Usa re.findall() con el patrón correcto para extraer todos los emails del texto.",
+      "theory": "Regex (expresiones regulares) permite buscar patrones en texto. re.findall() encuentra todas las coincidencias. Patrón de email: [a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+      "syntax": "re.findall(r'patron', texto)",
+      "example": {
+        "code": "import re\ntexto = 'Llama al 555-1234 o 555-5678'\ntelef = re.findall(r'\\d{3}-\\d{4}', texto)\nprint(telef)  # ['555-1234', '555-5678']",
+        "explanation": "\\d{3} encuentra 3 dígitos, - es literal, \\d{4} encuentra 4 dígitos"
+      },
+      "starterCode": "import re\n\ntexto = '''\nContacto: juan@example.com\nSoporte: support@company.org\nVentas: sales@business.net\n'''\n\n# Extrae todos los emails\nemails = re.findall(r'___', texto)\n\n# Imprime resultado\nprint(emails)",
+      "solution": "emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}', texto)",
+      "test": "len(emails) == 3 and 'juan@example.com' in emails",
+      "hints": [
+        "Patrón de email: usuario@dominio.extension",
+        "Usa [a-zA-Z0-9._%+-]+ para la parte del usuario",
+        "Usa \\.[a-zA-Z]{2,} para la extensión (.com, .org, etc.)"
+      ],
+      "successMessage": "¡Genial! Regex es potente para parsear logs y texto."
+    },
+
+    {
+      "id": "learn_013",
+      "title": "Python Datetime - Parsear Fechas",
+      "instruction": "Usa pd.to_datetime() para convertir strings de fechas a objetos datetime. Maneja múltiples formatos con errors='coerce'.",
+      "theory": "pd.to_datetime() convierte strings a fechas. El parámetro errors='coerce' convierte fechas inválidas a NaT (Not a Time) en lugar de fallar. Útil para datos sucios.",
+      "syntax": "pd.to_datetime(fechas, errors='coerce')",
+      "example": {
+        "code": "import pandas as pd\nfechas = ['2024-01-15', 'invalido', '2024-02-20']\nresultado = pd.to_datetime(fechas, errors='coerce')\nprint(resultado)\n# [Timestamp('2024-01-15'), NaT, Timestamp('2024-02-20')]",
+        "explanation": "errors='coerce' convierte 'invalido' a NaT sin fallar"
+      },
+      "starterCode": "import pandas as pd\n\n# Lista con fechas mixtas (algunas inválidas)\nfechas_str = ['2024-01-15', 'bad_date', '2024-02-20', 'otro_error', '2024-03-10']\n\n# Convierte a datetime manejando errores\nfechas = pd.to_datetime(fechas_str, errors=___)\n\n# Cuenta cuántas fechas válidas hay\nvalidas = fechas.notna().sum()\nprint(f'Fechas válidas: {validas}')",
+      "solution": "fechas = pd.to_datetime(fechas_str, errors='coerce')",
+      "test": "validas == 3",
+      "hints": [
+        "Usa errors='coerce' para convertir invalidos a NaT",
+        "notna() identifica fechas válidas (no NaT)",
+        "sum() cuenta cuántos True hay en la serie booleana"
+      ],
+      "successMessage": "¡Perfecto! Parsear fechas es común en pipelines de datos."
+    },
+
+    {
+      "id": "learn_014",
+      "title": "Python Collections - Counter",
+      "instruction": "Usa Counter de collections para contar la frecuencia de cada palabra en la lista.",
+      "theory": "Counter es un dict especializado que cuenta elementos. Ideal para frecuencias. Métodos útiles: most_common(n) retorna los n elementos más frecuentes.",
+      "syntax": "from collections import Counter\nCounter(lista)",
+      "example": {
+        "code": "from collections import Counter\nnumeros = [1, 2, 2, 3, 3, 3]\nfreq = Counter(numeros)\nprint(freq)  # Counter({3: 3, 2: 2, 1: 1})\nprint(freq.most_common(1))  # [(3, 3)]",
+        "explanation": "3 aparece 3 veces, 2 aparece 2 veces, 1 aparece 1 vez"
+      },
+      "starterCode": "from collections import Counter\n\npalabras = ['python', 'data', 'python', 'sql', 'data', 'python', 'spark']\n\n# Cuenta frecuencias\nfreq = ___\n\n# Obtén la palabra más común\nmas_comun = freq.most_common(1)[0][0]\nprint(f'Palabra más común: {mas_comun}')",
+      "solution": "freq = Counter(palabras)",
+      "test": "mas_comun == 'python'",
+      "hints": [
+        "Usa Counter(palabras) para contar",
+        "most_common(1) retorna [(palabra, count)]",
+        "[0][0] extrae la palabra del resultado"
+      ],
+      "successMessage": "¡Excelente! Counter es útil para análisis de frecuencias."
+    },
+
+    {
+      "id": "learn_015",
+      "title": "Python Collections - defaultdict",
+      "instruction": "Usa defaultdict para agrupar personas por edad sin verificar si la clave existe.",
+      "theory": "defaultdict(tipo) crea un dict que retorna un valor por defecto si la clave no existe. Con defaultdict(list), cada clave nueva automáticamente tiene una lista vacía. Evita KeyError.",
+      "syntax": "from collections import defaultdict\nd = defaultdict(list)",
+      "example": {
+        "code": "from collections import defaultdict\ngrupos = defaultdict(list)\ngrupos['A'].append(1)  # No error, crea [] automáticamente\ngrupos['A'].append(2)\nprint(dict(grupos))  # {'A': [1, 2]}",
+        "explanation": "No necesitas verificar if 'A' in grupos antes de append"
+      },
+      "starterCode": "from collections import defaultdict\n\npersonas = [\n    ('Ana', 25),\n    ('Bob', 30),\n    ('Carlos', 25),\n    ('Diana', 30)\n]\n\n# Agrupa por edad\ngrupos_edad = ___\n\nfor nombre, edad in personas:\n    grupos_edad[edad].append(nombre)\n\n# Imprime grupo de edad 25\nprint(dict(grupos_edad))",
+      "solution": "grupos_edad = defaultdict(list)",
+      "test": "len(grupos_edad[25]) == 2 and 'Ana' in grupos_edad[25]",
+      "hints": [
+        "Usa defaultdict(list) para crear listas automáticamente",
+        "Luego usa grupos_edad[edad].append(nombre)",
+        "No necesitas verificar if edad in grupos_edad"
+      ],
+      "successMessage": "¡Genial! defaultdict simplifica agrupaciones en Python."
+    },
+
+    {
+      "id": "learn_016",
+      "title": "Pandas - Categorical Dtype",
+      "instruction": "Convierte la columna 'categoria' a tipo categorical para reducir uso de memoria.",
+      "theory": "Categorical dtype es eficiente para columnas con valores repetidos (ej: 'A', 'B', 'A', 'A'...). Guarda valores únicos + códigos numéricos. Reduce memoria hasta 90% en datasets grandes.",
+      "syntax": "df['columna'] = df['columna'].astype('category')",
+      "example": {
+        "code": "import pandas as pd\ndf = pd.DataFrame({'color': ['red', 'blue', 'red', 'red']})\ndf['color'] = df['color'].astype('category')\nprint(df['color'].dtype)  # category\nprint(df.memory_usage(deep=True))  # Menos memoria",
+        "explanation": "En lugar de guardar 'red' 3 veces, guarda 'red' una vez + [0,1,0,0]"
+      },
+      "starterCode": "import pandas as pd\nimport numpy as np\n\n# DataFrame con categorías repetidas\ndf = pd.DataFrame({\n    'id': range(1000),\n    'categoria': np.random.choice(['A', 'B', 'C'], 1000)\n})\n\n# Memoria inicial\nmem_inicial = df['categoria'].memory_usage(deep=True)\n\n# Convierte a categorical\ndf['categoria'] = ___\n\n# Memoria final\nmem_final = df['categoria'].memory_usage(deep=True)\nprint(f'Reducción: {100 * (1 - mem_final/mem_inicial):.1f}%')",
+      "solution": "df['categoria'] = df['categoria'].astype('category')",
+      "test": "df['categoria'].dtype.name == 'category'",
+      "hints": [
+        "Usa .astype('category') para convertir",
+        "Funciona igual que strings pero usa menos memoria",
+        "Ideal para columnas con pocos valores únicos"
+      ],
+      "successMessage": "¡Excelente! Categorical dtype es clave para optimización."
+    },
+
+    {
+      "id": "learn_017",
+      "title": "Pandas - Vectorización vs Apply",
+      "instruction": "Usa operaciones vectorizadas en lugar de apply() para mejor performance. Calcula 'total' multiplicando 'precio' * 'cantidad'.",
+      "theory": "Operaciones vectorizadas (df['A'] * df['B']) son 100x más rápidas que apply(). Pandas usa NumPy optimizado en C bajo el capó. Usa apply() solo cuando no hay alternativa vectorizada.",
+      "syntax": "df['resultado'] = df['col1'] * df['col2']",
+      "example": {
+        "code": "import pandas as pd\ndf = pd.DataFrame({'x': [1, 2, 3], 'y': [10, 20, 30]})\n\n# MAL (lento):\n# df['suma'] = df.apply(lambda row: row['x'] + row['y'], axis=1)\n\n# BIEN (rápido):\ndf['suma'] = df['x'] + df['y']\nprint(df)",
+        "explanation": "Vectorización es mucho más rápida para operaciones simples"
+      },
+      "starterCode": "import pandas as pd\n\ndf = pd.DataFrame({\n    'producto': ['A', 'B', 'C'],\n    'precio': [100, 200, 150],\n    'cantidad': [5, 3, 4]\n})\n\n# Calcula total usando vectorización (NO uses apply)\ndf['total'] = ___\n\n# Imprime resultado\nprint(df)",
+      "solution": "df['total'] = df['precio'] * df['cantidad']",
+      "test": "df['total'].tolist() == [500, 600, 600]",
+      "hints": [
+        "Simplemente multiplica las dos columnas: df['precio'] * df['cantidad']",
+        "No uses apply(), lambda, ni loops",
+        "La multiplicación vectorizada funciona elemento por elemento"
+      ],
+      "successMessage": "¡Perfecto! Vectorización es fundamental para performance."
+    },
+
+    {
+      "id": "learn_018",
+      "title": "SQL - CTE (WITH clause)",
+      "instruction": "Usa WITH para crear una CTE que calcule ventas totales por región, luego filtra solo regiones con ventas > 200.",
+      "theory": "CTEs (Common Table Expressions) con WITH hacen queries más legibles. Son como tablas temporales que solo existen durante la query. Sintaxis: WITH nombre AS (SELECT ...) SELECT ... FROM nombre",
+      "syntax": "WITH cte AS (SELECT ...) SELECT * FROM cte WHERE ...",
+      "example": {
+        "code": "-- CTE básico\nWITH usuarios_activos AS (\n    SELECT * FROM usuarios WHERE activo = true\n)\nSELECT nombre, email\nFROM usuarios_activos\nWHERE edad > 25;",
+        "explanation": "usuarios_activos es una tabla temporal usada en el SELECT principal"
+      },
+      "starterCode": "-- Completa la CTE\nWITH ventas_por_region AS (\n    SELECT \n        region,\n        SUM(monto) as total_ventas\n    FROM ventas\n    GROUP BY ___\n)\nSELECT *\nFROM ventas_por_region\nWHERE total_ventas > ___;\n\n-- Reemplaza los ___ con: region y 200",
+      "solution": "WITH ventas_por_region AS (\n    SELECT region, SUM(monto) as total_ventas\n    FROM ventas\n    GROUP BY region\n)\nSELECT * FROM ventas_por_region WHERE total_ventas > 200;",
+      "test": "True",
+      "hints": [
+        "Después de GROUP BY va 'region'",
+        "En el WHERE va 'total_ventas > 200'",
+        "Las CTEs hacen el código más legible que subqueries anidados"
+      ],
+      "successMessage": "¡Bien! CTEs son esenciales para queries complejos."
+    },
+
+    {
+      "id": "learn_019",
+      "title": "SQL - Window ROW_NUMBER",
+      "instruction": "Usa ROW_NUMBER() OVER (PARTITION BY region ORDER BY ventas DESC) para rankear vendedores por región.",
+      "theory": "Window functions permiten cálculos sobre un 'ventana' de filas. ROW_NUMBER() asigna números secuenciales. PARTITION BY divide en grupos, ORDER BY ordena dentro de cada grupo.",
+      "syntax": "ROW_NUMBER() OVER (PARTITION BY col1 ORDER BY col2 DESC)",
+      "example": {
+        "code": "SELECT\n    empleado,\n    salario,\n    ROW_NUMBER() OVER (ORDER BY salario DESC) as ranking\nFROM empleados;\n-- Resultado:\n-- empleado | salario | ranking\n-- Bob      | 100000  | 1\n-- Alice    | 90000   | 2",
+        "explanation": "Asigna 1 al salario más alto, 2 al segundo, etc."
+      },
+      "starterCode": "SELECT\n    vendedor,\n    region,\n    ventas,\n    ROW_NUMBER() OVER (\n        PARTITION BY ___\n        ORDER BY ___ DESC\n    ) as ranking_regional\nFROM ventas_vendedores;\n\n-- Reemplaza los ___ con: region y ventas",
+      "solution": "ROW_NUMBER() OVER (PARTITION BY region ORDER BY ventas DESC)",
+      "test": "True",
+      "hints": [
+        "PARTITION BY region divide por región",
+        "ORDER BY ventas DESC ordena de mayor a menor",
+        "Cada región tendrá su propio ranking 1, 2, 3..."
+      ],
+      "successMessage": "¡Excelente! Window functions son muy usadas en análisis."
+    },
+
+    {
+      "id": "learn_020",
+      "title": "SQL - LAG para Comparar Filas Anteriores",
+      "instruction": "Usa LAG() para comparar las ventas de cada mes con el mes anterior.",
+      "theory": "LAG(columna, offset) accede al valor de N filas anteriores en la ventana ordenada. LAG(ventas, 1) obtiene las ventas del mes anterior. Útil para calcular cambios mes a mes.",
+      "syntax": "LAG(columna, 1) OVER (ORDER BY fecha)",
+      "example": {
+        "code": "SELECT\n    fecha,\n    ventas,\n    LAG(ventas, 1) OVER (ORDER BY fecha) as ventas_anterior,\n    ventas - LAG(ventas, 1) OVER (ORDER BY fecha) as cambio\nFROM ventas_mensuales;",
+        "explanation": "Calcula diferencia entre ventas actuales y del mes anterior"
+      },
+      "starterCode": "SELECT\n    mes,\n    ventas,\n    LAG(___, 1) OVER (ORDER BY ___) as ventas_mes_anterior\nFROM ventas_mensuales;\n\n-- Reemplaza los ___ con: ventas y mes",
+      "solution": "LAG(ventas, 1) OVER (ORDER BY mes)",
+      "test": "True",
+      "hints": [
+        "LAG(ventas, 1) obtiene las ventas de 1 fila anterior",
+        "ORDER BY mes ordena cronológicamente",
+        "El primer mes tendrá NULL en ventas_mes_anterior"
+      ],
+      "successMessage": "¡Genial! LAG/LEAD son útiles para análisis temporal."
+    },
+
+    {
+      "id": "learn_021",
+      "title": "Pandas - Resample Time Series",
+      "instruction": "Usa resample() para convertir datos diarios a mensuales calculando la suma.",
+      "theory": "resample() agrupa datos por frecuencia temporal (día, semana, mes, año). Similar a groupby pero para time series. Debe tener index DatetimeIndex.",
+      "syntax": "df.resample('M').sum()",
+      "example": {
+        "code": "import pandas as pd\ndf = pd.DataFrame({\n    'fecha': pd.date_range('2024-01-01', periods=90, freq='D'),\n    'ventas': range(90)\n})\ndf.set_index('fecha', inplace=True)\nmensuales = df.resample('M').sum()\nprint(mensuales)",
+        "explanation": "Agrupa 90 días en 3 meses sumando las ventas"
+      },
+      "starterCode": "import pandas as pd\nimport numpy as np\n\n# Crear datos diarios\nfechas = pd.date_range('2024-01-01', periods=30, freq='D')\ndf = pd.DataFrame({\n    'fecha': fechas,\n    'ventas': np.random.randint(100, 500, 30)\n})\ndf.set_index('fecha', inplace=True)\n\n# Resample a semanal ('W') y calcula promedio\nsemanal = df.resample(___).mean()\n\nprint(semanal)",
+      "solution": "semanal = df.resample('W').mean()",
+      "test": "len(semanal) > 0",
+      "hints": [
+        "Usa 'W' para frecuencia semanal",
+        "mean() calcula el promedio de cada semana",
+        "Otras frecuencias: 'D' día, 'M' mes, 'Y' año"
+      ],
+      "successMessage": "¡Excelente! Resample es esencial para time series."
+    },
+
+    {
+      "id": "learn_022",
+      "title": "Pandas - Rolling Windows",
+      "instruction": "Calcula media móvil de 3 días usando rolling().",
+      "theory": "rolling(window) crea una ventana deslizante de N filas. Útil para suavizar datos y calcular tendencias. Combina con mean(), sum(), std(), etc.",
+      "syntax": "df['col'].rolling(window=3).mean()",
+      "example": {
+        "code": "import pandas as pd\ndf = pd.DataFrame({'precio': [10, 12, 11, 13, 14, 12]})\ndf['media_3d'] = df['precio'].rolling(window=3).mean()\nprint(df)\n#    precio  media_3d\n# 0      10       NaN\n# 1      12       NaN\n# 2      11      11.0  # (10+12+11)/3\n# 3      13      12.0  # (12+11+13)/3",
+        "explanation": "Primeras 2 filas son NaN (ventana incompleta)"
+      },
+      "starterCode": "import pandas as pd\n\ndf = pd.DataFrame({\n    'dia': range(1, 11),\n    'temperatura': [20, 22, 21, 23, 25, 24, 26, 25, 27, 28]\n})\n\n# Calcula media móvil de 3 días\ndf['temp_media_3d'] = df['temperatura'].rolling(window=___).mean()\n\nprint(df)",
+      "solution": "df['temp_media_3d'] = df['temperatura'].rolling(window=3).mean()",
+      "test": "df['temp_media_3d'].notna().sum() == 8",
+      "hints": [
+        "window=3 crea ventana de 3 filas",
+        "Las primeras 2 filas serán NaN",
+        "rolling() + mean() calcula promedio deslizante"
+      ],
+      "successMessage": "¡Bien! Rolling windows son clave en análisis temporal."
+    },
+
+    {
+      "id": "learn_023",
+      "title": "Pandas - Shift para Comparar Períodos",
+      "instruction": "Usa shift() para crear columna con ventas del día anterior y calcular el cambio diario.",
+      "theory": "shift(n) desplaza valores N posiciones. shift(1) mueve cada valor una fila abajo (valor anterior). shift(-1) una fila arriba (valor siguiente). Útil para calcular diferencias temporales.",
+      "syntax": "df['col'].shift(1)",
+      "example": {
+        "code": "import pandas as pd\ndf = pd.DataFrame({'ventas': [100, 120, 110, 130]})\ndf['ventas_ayer'] = df['ventas'].shift(1)\ndf['cambio'] = df['ventas'] - df['ventas_ayer']\nprint(df)\n#    ventas  ventas_ayer  cambio\n# 0     100          NaN     NaN\n# 1     120        100.0    20.0\n# 2     110        120.0   -10.0",
+        "explanation": "shift(1) trae el valor de la fila anterior"
+      },
+      "starterCode": "import pandas as pd\n\ndf = pd.DataFrame({\n    'dia': range(1, 8),\n    'precio': [100, 105, 103, 108, 110, 107, 112]\n})\n\n# Crea columna con precio del día anterior\ndf['precio_anterior'] = df['precio'].shift(___)\n\n# Calcula cambio diario\ndf['cambio'] = df['precio'] - df['precio_anterior']\n\nprint(df[['dia', 'precio', 'precio_anterior', 'cambio']])",
+      "solution": "df['precio_anterior'] = df['precio'].shift(1)",
+      "test": "df['cambio'].notna().sum() == 6",
+      "hints": [
+        "shift(1) desplaza una posición hacia abajo",
+        "Primera fila será NaN (no hay anterior)",
+        "Resta actual - anterior para el cambio"
+      ],
+      "successMessage": "¡Perfecto! Shift es fundamental para comparaciones temporales."
+    },
+
+    {
+      "id": "learn_024",
+      "title": "Pandas - merge_asof para Time Series",
+      "instruction": "Usa merge_asof() para unir trades con quotes más cercanas en tiempo.",
+      "theory": "merge_asof() une DataFrames por la coincidencia de tiempo MÁS CERCANA. Diferente a merge normal que requiere coincidencia exacta. Esencial para time series financieras. Requiere datos ordenados por tiempo.",
+      "syntax": "pd.merge_asof(left, right, on='timestamp')",
+      "example": {
+        "code": "import pandas as pd\ntrades = pd.DataFrame({\n    'time': [1, 3, 5],\n    'qty': [100, 200, 150]\n})\nquotes = pd.DataFrame({\n    'time': [0, 2, 4],\n    'price': [10.0, 10.5, 11.0]\n})\nresult = pd.merge_asof(trades, quotes, on='time')\nprint(result)\n#    time  qty  price\n# 0     1  100   10.0  # usa quote en time=0\n# 1     3  200   10.5  # usa quote en time=2",
+        "explanation": "Cada trade obtiene el quote más reciente anterior"
+      },
+      "starterCode": "import pandas as pd\n\ntrades = pd.DataFrame({\n    'timestamp': pd.to_datetime(['2024-01-01 10:01', '2024-01-01 10:03', '2024-01-01 10:05']),\n    'cantidad': [100, 200, 150]\n})\n\nprecios = pd.DataFrame({\n    'timestamp': pd.to_datetime(['2024-01-01 10:00', '2024-01-01 10:02', '2024-01-01 10:04']),\n    'precio': [50.0, 51.0, 52.0]\n})\n\n# Merge asof - cada trade con precio más cercano\nresult = pd.merge_asof(___, ___, on='timestamp')\n\nprint(result)",
+      "solution": "result = pd.merge_asof(trades, precios, on='timestamp')",
+      "test": "len(result) == 3 and 'precio' in result.columns",
+      "hints": [
+        "merge_asof(left, right, on='timestamp')",
+        "trades va primero (left), precios segundo (right)",
+        "Datos deben estar ordenados por timestamp"
+      ],
+      "successMessage": "¡Genial! merge_asof es clave para time series irregulares."
+    },
+
+    {
+      "id": "learn_025",
+      "title": "SQL - RANK vs DENSE_RANK",
+      "instruction": "Usa RANK() y DENSE_RANK() para ver la diferencia en empates.",
+      "theory": "RANK() deja gaps después de empates. DENSE_RANK() no deja gaps. Ejemplo: scores [100, 90, 90, 80] → RANK: [1, 2, 2, 4], DENSE_RANK: [1, 2, 2, 3]",
+      "syntax": "RANK() OVER (ORDER BY col DESC)",
+      "example": {
+        "code": "SELECT\n    nombre,\n    score,\n    RANK() OVER (ORDER BY score DESC) as rank_con_gaps,\n    DENSE_RANK() OVER (ORDER BY score DESC) as rank_sin_gaps\nFROM examenes;\n-- Si dos tienen score=90:\n-- RANK: 1, 2, 2, 4 (salta el 3)\n-- DENSE_RANK: 1, 2, 2, 3 (no salta)",
+        "explanation": "DENSE_RANK no deja huecos en el ranking"
+      },
+      "starterCode": "SELECT\n    estudiante,\n    calificacion,\n    RANK() OVER (ORDER BY ___ DESC) as ranking,\n    DENSE_RANK() OVER (ORDER BY ___ DESC) as ranking_denso\nFROM calificaciones;\n\n-- Reemplaza ___ con: calificacion",
+      "solution": "RANK() OVER (ORDER BY calificacion DESC)",
+      "test": "True",
+      "hints": [
+        "Ambos usan ORDER BY calificacion DESC",
+        "RANK() puede saltar números",
+        "DENSE_RANK() siempre es consecutivo"
+      ],
+      "successMessage": "¡Bien! Conocer las diferencias entre RANK es importante."
+    },
+
+    {
+      "id": "learn_026",
+      "title": "SQL - ROWS BETWEEN para Frames",
+      "instruction": "Usa ROWS BETWEEN para calcular suma de las últimas 3 ventas.",
+      "theory": "ROWS BETWEEN define el frame de la ventana. ROWS BETWEEN 2 PRECEDING AND CURRENT ROW = últimas 3 filas (2 previas + actual). UNBOUNDED PRECEDING = desde el inicio.",
+      "syntax": "SUM(col) OVER (ORDER BY fecha ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)",
+      "example": {
+        "code": "SELECT\n    fecha,\n    ventas,\n    SUM(ventas) OVER (\n        ORDER BY fecha\n        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\n    ) as suma_ultimas_3\nFROM ventas_diarias;\n-- Día 1: suma = ventas[1]\n-- Día 2: suma = ventas[1] + ventas[2]\n-- Día 3: suma = ventas[1] + ventas[2] + ventas[3]\n-- Día 4: suma = ventas[2] + ventas[3] + ventas[4]",
+        "explanation": "Suma móvil de 3 días"
+      },
+      "starterCode": "SELECT\n    dia,\n    cantidad,\n    SUM(cantidad) OVER (\n        ORDER BY dia\n        ROWS BETWEEN ___ PRECEDING AND CURRENT ROW\n    ) as suma_movil_3\nFROM ventas;\n\n-- Reemplaza ___ con: 2",
+      "solution": "ROWS BETWEEN 2 PRECEDING AND CURRENT ROW",
+      "test": "True",
+      "hints": [
+        "2 PRECEDING = 2 filas anteriores",
+        "CURRENT ROW = fila actual",
+        "Total: 2 previas + actual = 3 filas"
+      ],
+      "successMessage": "¡Excelente! ROWS BETWEEN es poderoso para agregaciones móviles."
+    },
+
+    {
+      "id": "learn_027",
+      "title": "SQL - GROUPING SETS para Subtotales",
+      "instruction": "Usa GROUPING SETS para obtener totales por región, producto, y gran total en una sola query.",
+      "theory": "GROUPING SETS genera múltiples niveles de agregación en una query. Equivale a múltiples GROUP BY con UNION ALL. Ejemplo: GROUPING SETS ((region), (producto), ()) genera 3 niveles de agregación.",
+      "syntax": "GROUP BY GROUPING SETS ((col1), (col2), ())",
+      "example": {
+        "code": "SELECT\n    region,\n    SUM(ventas) as total\nFROM ventas\nGROUP BY GROUPING SETS ((region), ())\n-- Genera:\n-- Norte | 1000\n-- Sur   | 1500\n-- NULL  | 2500  (gran total)",
+        "explanation": "NULL en region indica el gran total"
+      },
+      "starterCode": "SELECT\n    region,\n    categoria,\n    SUM(ventas) as total\nFROM ventas\nGROUP BY GROUPING SETS (\n    (region, categoria),  -- Total por región Y categoría\n    (region),              -- Total por región\n    ___                    -- Gran total (todas las filas)\n);\n\n-- Reemplaza ___ con: ()",
+      "solution": "GROUP BY GROUPING SETS ((region, categoria), (region), ())",
+      "test": "True",
+      "hints": [
+        "() sin columnas genera el gran total",
+        "NULL aparece donde no se agrupó",
+        "Es más eficiente que múltiples queries"
+      ],
+      "successMessage": "¡Genial! GROUPING SETS es avanzado pero muy útil."
+    },
+
+    {
+      "id": "learn_028",
+      "title": "Python - Logging Básico",
+      "instruction": "Configura logging para escribir mensajes INFO a consola y errores a archivo.",
+      "theory": "logging permite registrar eventos del programa. Niveles: DEBUG < INFO < WARNING < ERROR < CRITICAL. basicConfig() configura el sistema de logging. Es mejor que print() para producción.",
+      "syntax": "import logging\nlogging.basicConfig(level=logging.INFO)",
+      "example": {
+        "code": "import logging\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s'\n)\n\nlogging.info('Proceso iniciado')\nlogging.warning('Advertencia')\nlogging.error('Error encontrado')",
+        "explanation": "INFO y superiores se mostrarán (WARNING, ERROR)"
+      },
+      "starterCode": "import logging\n\n# Configura logging\nlogging.basicConfig(\n    level=logging.___,\n    format='%(levelname)s: %(message)s'\n)\n\n# Escribe logs\nlogging.info('Datos cargados correctamente')\nlogging.warning('Faltan 5 registros')\nlogging.error('Error de conexión')\n\n# Reemplaza ___ con: INFO",
+      "solution": "logging.basicConfig(level=logging.INFO)",
+      "test": "True",
+      "hints": [
+        "level=logging.INFO muestra INFO y superiores",
+        "format define cómo se ve el mensaje",
+        "En producción, usa logging en vez de print()"
+      ],
+      "successMessage": "¡Bien! Logging es esencial en pipelines de producción."
+    },
+
+    {
+      "id": "learn_029",
+      "title": "Python - Pytest Básico",
+      "instruction": "Escribe un test con pytest que verifique que suma(2, 3) retorna 5.",
+      "theory": "pytest es el framework de testing más usado en Python. Los tests son funciones que empiezan con test_. Usan assert para verificar condiciones. pytest descubre y ejecuta automáticamente los tests.",
+      "syntax": "def test_nombre():\n    assert funcion() == esperado",
+      "example": {
+        "code": "def duplicar(x):\n    return x * 2\n\ndef test_duplicar():\n    assert duplicar(5) == 10\n    assert duplicar(0) == 0\n    assert duplicar(-3) == -6\n\n# Ejecutar: pytest nombre_archivo.py",
+        "explanation": "Si algún assert falla, pytest reporta el error"
+      },
+      "starterCode": "def suma(a, b):\n    return a + b\n\ndef test_suma():\n    # Escribe asserts para verificar suma\n    assert suma(2, 3) == ___\n    assert suma(0, 0) == ___\n    assert suma(-1, 1) == ___\n\n# Reemplaza ___ con: 5, 0, 0",
+      "solution": "assert suma(2, 3) == 5\nassert suma(0, 0) == 0\nassert suma(-1, 1) == 0",
+      "test": "suma(2, 3) == 5",
+      "hints": [
+        "assert expresion verifica que sea True",
+        "Si es False, pytest marca como failed",
+        "Múltiples asserts en un test están OK"
+      ],
+      "successMessage": "¡Excelente! Testing con pytest es fundamental."
+    },
+
+    {
+      "id": "learn_030",
+      "title": "PySpark - Crear DataFrame con Schema",
+      "instruction": "Define un schema explícito con StructType y crea un DataFrame.",
+      "theory": "En Spark, definir schema mejora performance y evita inferencia. StructType define estructura, StructField define cada columna (nombre, tipo, nullable). Tipos: StringType, IntegerType, DoubleType, etc.",
+      "syntax": "schema = StructType([StructField('col', StringType(), True)])",
+      "example": {
+        "code": "from pyspark.sql.types import *\n\nschema = StructType([\n    StructField('id', IntegerType(), True),\n    StructField('nombre', StringType(), True)\n])\n\ndata = [(1, 'Ana'), (2, 'Bob')]\ndf = spark.createDataFrame(data, schema)\ndf.show()",
+        "explanation": "Schema define tipos y si permite NULL"
+      },
+      "starterCode": "from pyspark.sql.types import *\n\n# Define schema\nschema = StructType([\n    StructField('producto', ___, True),\n    StructField('precio', ___, True)\n])\n\ndata = [('Laptop', 1000), ('Mouse', 25)]\ndf = spark.createDataFrame(data, schema)\ndf.show()\n\n# Reemplaza ___ con: StringType(), IntegerType()",
+      "solution": "StructField('producto', StringType(), True), StructField('precio', IntegerType(), True)",
+      "test": "True",
+      "hints": [
+        "StringType() para texto",
+        "IntegerType() para enteros",
+        "True = permite NULL"
+      ],
+      "successMessage": "¡Bien! Schema explícito mejora performance en Spark."
+    },
+
+    {
+      "id": "learn_031",
+      "title": "PySpark - Select y WithColumn",
+      "instruction": "Usa select() para elegir columnas y withColumn() para crear columna nueva.",
+      "theory": "select() elige columnas (como SELECT en SQL). withColumn(nombre, expresion) agrega/modifica columnas. Son transformaciones lazy (no ejecutan hasta una acción como show()).",
+      "syntax": "df.select('col1', 'col2').withColumn('nueva', expr)",
+      "example": {
+        "code": "df = spark.createDataFrame([\n    (1, 100),\n    (2, 200)\n], ['id', 'precio'])\n\n# Select + nueva columna\nresult = df.select('id', 'precio') \\\n           .withColumn('precio_con_iva', df['precio'] * 1.18)\n\nresult.show()\n# +---+------+--------------+\n# | id|precio|precio_con_iva|\n# +---+------+--------------+\n# |  1|   100|         118.0|",
+        "explanation": "withColumn crea nueva columna calculada"
+      },
+      "starterCode": "# Asume df con columnas: nombre, salario\n\n# Selecciona columnas y crea nueva con aumento del 10%\nresult = df.select('nombre', 'salario') \\\n           .withColumn('salario_nuevo', df['salario'] * ___)\n\nresult.show()\n\n# Reemplaza ___ con: 1.1",
+      "solution": "df.select('nombre', 'salario').withColumn('salario_nuevo', df['salario'] * 1.1)",
+      "test": "True",
+      "hints": [
+        "select() elige qué columnas mostrar",
+        "withColumn('nombre', expresion) crea columna",
+        "1.1 representa aumento del 10%"
+      ],
+      "successMessage": "¡Perfecto! select y withColumn son básicos en Spark."
+    },
+
+    {
+      "id": "learn_032",
+      "title": "PySpark - Filter y Where",
+      "instruction": "Filtra filas donde ventas > 1000 usando filter() o where().",
+      "theory": "filter() y where() son equivalentes en Spark (ambos filtran filas). Acepta expresión SQL string o Column expression. Similar a WHERE en SQL.",
+      "syntax": "df.filter('ventas > 1000') o df.filter(df['ventas'] > 1000)",
+      "example": {
+        "code": "df = spark.createDataFrame([\n    ('A', 800),\n    ('B', 1500),\n    ('C', 1200)\n], ['producto', 'ventas'])\n\n# Filtrar ventas > 1000\nfiltrado = df.filter(df['ventas'] > 1000)\nfiltrado.show()\n# +---------+------+\n# |producto|ventas|\n# +---------+------+\n# |       B|  1500|\n# |       C|  1200|",
+        "explanation": "Solo muestra filas donde condición es True"
+      },
+      "starterCode": "# Asume df con columnas: ciudad, poblacion\n\n# Filtra ciudades con población > 500000\ngrandes = df.filter(df['poblacion'] > ___)\n\ngrandes.show()\n\n# Reemplaza ___ con: 500000",
+      "solution": "df.filter(df['poblacion'] > 500000)",
+      "test": "True",
+      "hints": [
+        "filter(df['columna'] > valor)",
+        "También puedes usar: filter('poblacion > 500000')",
+        "where() es equivalente a filter()"
+      ],
+      "successMessage": "¡Excelente! Filter es fundamental en transformaciones Spark."
+    },
+
+    {
+      "id": "learn_033",
+      "title": "PySpark - GroupBy y Aggregations",
+      "instruction": "Agrupa por categoría y calcula suma, promedio y conteo en una sola operación.",
+      "theory": "groupBy(columnas) agrupa filas. agg() permite múltiples agregaciones simultáneas. Funciones: sum(), avg(), count(), min(), max(). Importa desde pyspark.sql.functions.",
+      "syntax": "df.groupBy('categoria').agg(sum('col1'), avg('col2'))",
+      "example": {
+        "code": "from pyspark.sql.functions import sum, avg, count\n\ndf = spark.createDataFrame([\n    ('A', 100),\n    ('A', 150),\n    ('B', 200)\n], ['cat', 'valor'])\n\nresult = df.groupBy('cat').agg(\n    sum('valor').alias('total'),\n    avg('valor').alias('promedio')\n)\nresult.show()\n# +---+-----+--------+\n# |cat|total|promedio|\n# +---+-----+--------+\n# |  A|  250|   125.0|",
+        "explanation": "Calcula múltiples agregaciones en una pasada"
+      },
+      "starterCode": "from pyspark.sql.functions import sum, avg, count\n\n# Asume df con: region, ventas\n\nresult = df.groupBy('region').agg(\n    sum('ventas').alias('total_ventas'),\n    avg('ventas').alias('___'),\n    count('ventas').alias('___')\n)\n\nresult.show()\n\n# Reemplaza ___ con: promedio_ventas, num_transacciones",
+      "solution": "avg('ventas').alias('promedio_ventas'), count('ventas').alias('num_transacciones')",
+      "test": "True",
+      "hints": [
+        "avg('ventas') calcula promedio",
+        "count('ventas') cuenta filas",
+        "alias() renombra la columna resultado"
+      ],
+      "successMessage": "¡Genial! GroupBy con agg es muy usado en Spark."
+    },
+
+    {
+      "id": "learn_034",
+      "title": "PySpark - Join DataFrames",
+      "instruction": "Haz un join entre empleados y departamentos usando la columna dept_id.",
+      "theory": "join(otro_df, condicion, tipo) une DataFrames. Tipos: 'inner' (default), 'left', 'right', 'outer'. Condición puede ser columna común o expresión.",
+      "syntax": "df1.join(df2, df1['id'] == df2['id'], 'left')",
+      "example": {
+        "code": "empleados = spark.createDataFrame([\n    (1, 'Ana', 10),\n    (2, 'Bob', 20)\n], ['emp_id', 'nombre', 'dept_id'])\n\ndepartamentos = spark.createDataFrame([\n    (10, 'IT'),\n    (20, 'Sales')\n], ['dept_id', 'dept_nombre'])\n\nresult = empleados.join(\n    departamentos,\n    empleados['dept_id'] == departamentos['dept_id'],\n    'left'\n)\nresult.show()",
+        "explanation": "Join tipo left incluye todos los empleados"
+      },
+      "starterCode": "# Asume: df_productos con (prod_id, nombre)\n#        df_ventas con (venta_id, prod_id, cantidad)\n\nresult = df_ventas.join(\n    df_productos,\n    df_ventas['___'] == df_productos['___'],\n    '___'\n)\n\nresult.show()\n\n# Reemplaza ___ con: prod_id, prod_id, left",
+      "solution": "df_ventas.join(df_productos, df_ventas['prod_id'] == df_productos['prod_id'], 'left')",
+      "test": "True",
+      "hints": [
+        "Columna común: prod_id",
+        "Condición: df1['prod_id'] == df2['prod_id']",
+        "Tipo: 'left' para incluir todas las ventas"
+      ],
+      "successMessage": "¡Perfecto! Joins son esenciales en procesamiento Spark."
+    },
+
+    {
+      "id": "learn_035",
+      "title": "Pandas - Detectar Duplicados",
+      "instruction": "Usa duplicated() para encontrar filas duplicadas y drop_duplicates() para eliminarlas.",
+      "theory": "duplicated() retorna máscara booleana indicando duplicados. drop_duplicates(subset, keep) elimina duplicados. keep='first' mantiene primero, 'last' mantiene último.",
+      "syntax": "df.duplicated(subset=['col']) o df.drop_duplicates()",
+      "example": {
+        "code": "import pandas as pd\ndf = pd.DataFrame({\n    'id': [1, 2, 2, 3],\n    'nombre': ['Ana', 'Bob', 'Bob', 'Carlos']\n})\n\n# Detectar duplicados\nduplicados = df.duplicated()\nprint(duplicados)  # [False, False, True, False]\n\n# Eliminar duplicados\nlimpio = df.drop_duplicates()\nprint(len(limpio))  # 3",
+        "explanation": "Segunda fila con id=2 es duplicado"
+      },
+      "starterCode": "import pandas as pd\n\ndf = pd.DataFrame({\n    'email': ['a@test.com', 'b@test.com', 'a@test.com', 'c@test.com'],\n    'nombre': ['Ana', 'Bob', 'Ana', 'Carlos']\n})\n\n# Elimina duplicados basados en email\ndf_limpio = df.drop_duplicates(subset=[___], keep=___)\n\nprint(f'Filas originales: {len(df)}')\nprint(f'Filas sin duplicados: {len(df_limpio)}')\n\n# Reemplaza ___ con: 'email', 'first'",
+      "solution": "df.drop_duplicates(subset=['email'], keep='first')",
+      "test": "len(df_limpio) == 3",
+      "hints": [
+        "subset=['email'] busca duplicados en esa columna",
+        "keep='first' mantiene la primera ocurrencia",
+        "También existe keep='last' o keep=False"
+      ],
+      "successMessage": "¡Bien! Eliminar duplicados es crucial en data cleaning."
+    },
+
+    {
+      "id": "learn_036",
+      "title": "Pandas - Manejar Valores Nulos",
+      "instruction": "Usa isna(), fillna() y dropna() para detectar y manejar valores nulos.",
+      "theory": "isna() detecta NaN/None. fillna(valor) reemplaza nulos. dropna() elimina filas con nulos. dropna(how='all') solo elimina si todos son nulos. fillna puede usar método: 'ffill' (forward fill), 'bfill' (backward fill).",
+      "syntax": "df.fillna(0) o df.dropna()",
+      "example": {
+        "code": "import pandas as pd\nimport numpy as np\n\ndf = pd.DataFrame({\n    'A': [1, np.nan, 3],\n    'B': [4, 5, np.nan]\n})\n\n# Detectar nulos\nprint(df.isna().sum())  # A: 1, B: 1\n\n# Rellenar con 0\ndf_filled = df.fillna(0)\nprint(df_filled)",
+        "explanation": "fillna(0) reemplaza todos los NaN con 0"
+      },
+      "starterCode": "import pandas as pd\nimport numpy as np\n\ndf = pd.DataFrame({\n    'precio': [100, np.nan, 150, np.nan, 200],\n    'cantidad': [5, 3, np.nan, 4, 2]\n})\n\n# Rellena nulos en precio con promedio\npromedio_precio = df['precio'].mean()\ndf['precio'] = df['precio'].fillna(___)\n\n# Elimina filas donde cantidad es nulo\ndf = df.dropna(subset=[___])\n\nprint(df)\n\n# Reemplaza ___ con: promedio_precio, 'cantidad'",
+      "solution": "df['precio'].fillna(promedio_precio); df.dropna(subset=['cantidad'])",
+      "test": "df['precio'].isna().sum() == 0",
+      "hints": [
+        "fillna(promedio_precio) rellena con el promedio",
+        "dropna(subset=['cantidad']) elimina si cantidad es nulo",
+        "mean() calcula promedio ignorando nulos"
+      ],
+      "successMessage": "¡Excelente! Manejo de nulos es fundamental en data cleaning."
+    },
+
+    {
+      "id": "learn_037",
+      "title": "Pandas - Detectar Outliers con IQR",
+      "instruction": "Calcula IQR (rango intercuartil) para detectar outliers en una columna.",
+      "theory": "IQR = Q3 - Q1 (diferencia entre percentil 75 y 25). Outliers: valores < Q1 - 1.5*IQR o > Q3 + 1.5*IQR. Método estadístico robusto para detectar valores atípicos.",
+      "syntax": "Q1 = df['col'].quantile(0.25)\nQ3 = df['col'].quantile(0.75)\nIQR = Q3 - Q1",
+      "example": {
+        "code": "import pandas as pd\n\ndf = pd.DataFrame({'valor': [10, 12, 11, 13, 100]})\n\nQ1 = df['valor'].quantile(0.25)\nQ3 = df['valor'].quantile(0.75)\nIQR = Q3 - Q1\n\nlimite_inf = Q1 - 1.5 * IQR\nlimite_sup = Q3 + 1.5 * IQR\n\noutliers = df[(df['valor'] < limite_inf) | (df['valor'] > limite_sup)]\nprint(outliers)  # 100 es outlier",
+        "explanation": "100 está muy por encima del límite superior"
+      },
+      "starterCode": "import pandas as pd\n\ndf = pd.DataFrame({\n    'salario': [50000, 55000, 52000, 58000, 200000, 54000]\n})\n\n# Calcula IQR\nQ1 = df['salario'].quantile(___)\nQ3 = df['salario'].quantile(___)\nIQR = Q3 - Q1\n\n# Detecta outliers\nlimite_sup = Q3 + 1.5 * IQR\noutliers = df[df['salario'] > limite_sup]\n\nprint(f'Outliers detectados: {len(outliers)}')\n\n# Reemplaza ___ con: 0.25, 0.75",
+      "solution": "Q1 = df['salario'].quantile(0.25); Q3 = df['salario'].quantile(0.75)",
+      "test": "len(outliers) >= 1",
+      "hints": [
+        "quantile(0.25) es el percentil 25 (Q1)",
+        "quantile(0.75) es el percentil 75 (Q3)",
+        "Outliers: > Q3 + 1.5*IQR o < Q1 - 1.5*IQR"
+      ],
+      "successMessage": "¡Genial! IQR es un método robusto para outliers."
+    },
+
+    {
+      "id": "learn_038",
+      "title": "Pandas - Leer CSV con Chunks",
+      "instruction": "Lee un CSV grande por chunks de 1000 filas y procesa cada chunk.",
+      "theory": "chunksize en read_csv() lee el archivo en pedazos, retornando iterador. Esencial para archivos que no caben en memoria. Procesa chunk por chunk y agrega resultados.",
+      "syntax": "for chunk in pd.read_csv('file.csv', chunksize=1000):",
+      "example": {
+        "code": "import pandas as pd\n\ntotal = 0\nfor chunk in pd.read_csv('big_file.csv', chunksize=1000):\n    # Procesa cada chunk de 1000 filas\n    total += chunk['valor'].sum()\n\nprint(f'Suma total: {total}')",
+        "explanation": "Nunca carga todo el archivo en memoria"
+      },
+      "starterCode": "import pandas as pd\nimport numpy as np\n\n# Simula archivo grande\ndf_grande = pd.DataFrame({\n    'id': range(10000),\n    'valor': np.random.randint(1, 100, 10000)\n})\ndf_grande.to_csv('temp_large.csv', index=False)\n\n# Lee por chunks y calcula promedio\nsuma_total = 0\nconteo_total = 0\n\nfor chunk in pd.read_csv('temp_large.csv', chunksize=___):\n    suma_total += chunk['valor'].sum()\n    conteo_total += len(chunk)\n\npromedio = suma_total / conteo_total\nprint(f'Promedio: {promedio:.2f}')\n\n# Reemplaza ___ con: 1000",
+      "solution": "pd.read_csv('temp_large.csv', chunksize=1000)",
+      "test": "conteo_total == 10000",
+      "hints": [
+        "chunksize=1000 lee 1000 filas por iteración",
+        "Suma valores en cada chunk",
+        "Al final calcula promedio: suma_total / conteo_total"
+      ],
+      "successMessage": "¡Perfecto! Chunked reading es clave para big data."
+    },
+
+    {
+      "id": "learn_039",
+      "title": "Pandas - to_sql para Guardar en DB",
+      "instruction": "Guarda un DataFrame en base de datos usando to_sql() con SQLAlchemy.",
+      "theory": "to_sql(nombre_tabla, engine, if_exists='replace/append/fail') guarda DataFrame en DB. Requiere SQLAlchemy engine. if_exists: 'replace'=sobrescribe, 'append'=agrega, 'fail'=error si existe.",
+      "syntax": "df.to_sql('tabla', con=engine, if_exists='replace')",
+      "example": {
+        "code": "import pandas as pd\nfrom sqlalchemy import create_engine\n\ndf = pd.DataFrame({\n    'id': [1, 2, 3],\n    'nombre': ['Ana', 'Bob', 'Carlos']\n})\n\n# Conecta a SQLite en memoria\nengine = create_engine('sqlite:///:memory:')\n\n# Guarda en tabla 'usuarios'\ndf.to_sql('usuarios', con=engine, if_exists='replace', index=False)\n\n# Lee de vuelta\nresult = pd.read_sql('SELECT * FROM usuarios', con=engine)\nprint(result)",
+        "explanation": "Guarda y lee desde base de datos"
+      },
+      "starterCode": "import pandas as pd\nfrom sqlalchemy import create_engine\n\ndf = pd.DataFrame({\n    'producto': ['Laptop', 'Mouse'],\n    'precio': [1000, 25]\n})\n\n# Crea engine SQLite en memoria\nengine = create_engine('sqlite:///:memory:')\n\n# Guarda en tabla 'productos'\ndf.to_sql('productos', con=engine, if_exists=___, index=False)\n\n# Verifica\nresult = pd.read_sql('SELECT * FROM productos', con=engine)\nprint(result)\n\n# Reemplaza ___ con: 'replace'",
+      "solution": "df.to_sql('productos', con=engine, if_exists='replace', index=False)",
+      "test": "len(result) == 2",
+      "hints": [
+        "if_exists='replace' sobrescribe tabla si existe",
+        "index=False no guarda el índice del DataFrame",
+        "SQLAlchemy engine maneja la conexión"
+      ],
+      "successMessage": "¡Excelente! to_sql es esencial para pipelines de datos."
+    },
+
+    {
+      "id": "learn_040",
+      "title": "PySpark - Repartition vs Coalesce",
+      "instruction": "Entiende la diferencia entre repartition() y coalesce() para optimizar particiones.",
+      "theory": "repartition(n) redistribuye datos en n particiones (full shuffle, costoso). coalesce(n) reduce particiones sin shuffle (más eficiente). Usa repartition para aumentar particiones, coalesce para disminuir.",
+      "syntax": "df.repartition(10) o df.coalesce(5)",
+      "example": {
+        "code": "# DataFrame con 100 particiones\ndf = spark.range(1000000).repartition(100)\n\nprint(f'Particiones iniciales: {df.rdd.getNumPartitions()}')\n\n# BIEN: Reducir particiones sin shuffle\ndf_coalesce = df.coalesce(10)\nprint(f'Después de coalesce: {df_coalesce.rdd.getNumPartitions()}')\n\n# Costoso: repartition hace full shuffle\ndf_repartition = df.repartition(10)\nprint(f'Después de repartition: {df_repartition.rdd.getNumPartitions()}')",
+        "explanation": "coalesce es más rápido para reducir particiones"
+      },
+      "starterCode": "# Asume df con 200 particiones\n\n# Reduce a 50 particiones eficientemente\ndf_optimizado = df.___(50)\n\nprint(f'Particiones: {df_optimizado.rdd.getNumPartitions()}')\n\n# Reemplaza ___ con: coalesce",
+      "solution": "df.coalesce(50)",
+      "test": "True",
+      "hints": [
+        "coalesce() reduce particiones sin shuffle completo",
+        "repartition() hace full shuffle (más costoso)",
+        "Usa coalesce cuando solo reduces, repartition para aumentar"
+      ],
+      "successMessage": "¡Bien! Entender particiones mejora performance en Spark."
+    },
+
+    {
+      "id": "learn_041",
+      "title": "PySpark - Broadcast Join",
+      "instruction": "Usa broadcast() para optimizar join con tabla pequeña.",
+      "theory": "broadcast(df) marca DataFrame pequeño para replicarlo en todos los nodos. Evita shuffle en joins cuando una tabla es pequeña (< 10MB típicamente). Mejora drásticamente performance.",
+      "syntax": "df_grande.join(broadcast(df_pequeño), ...)",
+      "example": {
+        "code": "from pyspark.sql.functions import broadcast\n\n# Tabla grande: 1M filas\nventas = spark.range(1000000).toDF('venta_id')\n\n# Tabla pequeña: 10 productos\nproductos = spark.createDataFrame([\n    (1, 'Laptop'),\n    (2, 'Mouse')\n], ['prod_id', 'nombre'])\n\n# Broadcast join (eficiente)\nresult = ventas.join(\n    broadcast(productos),\n    ventas['venta_id'] % 10 == productos['prod_id']\n)\n\nresult.show(5)",
+        "explanation": "productos se replica en todos los nodos, evitando shuffle de ventas"
+      },
+      "starterCode": "from pyspark.sql.functions import broadcast\n\n# Asume:\n# df_transacciones (grande): trans_id, user_id, monto\n# df_usuarios (pequeña): user_id, nombre, email\n\n# Join con broadcast hint\nresult = df_transacciones.join(\n    ___(df_usuarios),\n    'user_id',\n    'left'\n)\n\nresult.show()\n\n# Reemplaza ___ con: broadcast",
+      "solution": "broadcast(df_usuarios)",
+      "test": "True",
+      "hints": [
+        "broadcast(df_pequeño) marca para replicar",
+        "Usa solo si df cabe en memoria de cada nodo",
+        "Evita shuffle costoso de la tabla grande"
+      ],
+      "successMessage": "¡Genial! Broadcast joins son clave para optimizar Spark."
+    },
+
+    {
+      "id": "learn_042",
+      "title": "PySpark - Cache vs Persist",
+      "instruction": "Usa cache() para reutilizar DataFrame en múltiples acciones.",
+      "theory": "cache() guarda DataFrame en memoria para reutilización. persist(nivel) permite elegir nivel de almacenamiento (memoria, disco, ambos). Útil cuando usas el mismo DF varias veces.",
+      "syntax": "df.cache() o df.persist(StorageLevel.MEMORY_AND_DISK)",
+      "example": {
+        "code": "# DataFrame que usarás varias veces\ndf = spark.read.csv('large_file.csv')\n\n# Cache para evitar recalcular\ndf.cache()\n\n# Acción 1: cuenta filas\ncount1 = df.count()  # Calcula y cachea\n\n# Acción 2: muestra primeras filas\ndf.show(5)  # Usa cache, no recalcula\n\n# Acción 3: agrupación\ndf.groupBy('col').count().show()  # Usa cache\n\n# Libera memoria cuando termines\ndf.unpersist()",
+        "explanation": "cache() evita recalcular transformaciones en cada acción"
+      },
+      "starterCode": "# Asume df con transformaciones complejas\ndf_procesado = df.filter(...).groupBy(...).agg(...)\n\n# Cache para reutilizar\ndf_procesado.___\n\n# Usa varias veces\nconteo = df_procesado.count()\ndf_procesado.show(10)\n\n# Reemplaza ___ con: cache()",
+      "solution": "df_procesado.cache()",
+      "test": "True",
+      "hints": [
+        "cache() es equivalente a persist(MEMORY_ONLY)",
+        "Solo cachea después de una acción (lazy)",
+        "unpersist() libera la cache cuando termines"
+      ],
+      "successMessage": "¡Perfecto! Cache mejora performance en Spark."
+    },
+
+    {
+      "id": "learn_043",
+      "title": "SQL - CASE Expressions",
+      "instruction": "Usa CASE WHEN para crear columna con categorías basadas en condiciones.",
+      "theory": "CASE WHEN permite lógica condicional en SQL. Similar a if-elif-else en Python. Sintaxis: CASE WHEN condicion THEN valor ELSE default END",
+      "syntax": "CASE WHEN col > 100 THEN 'Alto' ELSE 'Bajo' END",
+      "example": {
+        "code": "SELECT\n    nombre,\n    salario,\n    CASE\n        WHEN salario >= 100000 THEN 'Senior'\n        WHEN salario >= 50000 THEN 'Mid'\n        ELSE 'Junior'\n    END as nivel\nFROM empleados;",
+        "explanation": "Clasifica empleados por nivel según salario"
+      },
+      "starterCode": "SELECT\n    producto,\n    precio,\n    CASE\n        WHEN precio > 1000 THEN ___\n        WHEN precio > 500 THEN ___\n        ELSE ___\n    END as categoria_precio\nFROM productos;\n\n-- Reemplaza ___ con: 'Premium', 'Medio', 'Económico'",
+      "solution": "CASE WHEN precio > 1000 THEN 'Premium' WHEN precio > 500 THEN 'Medio' ELSE 'Económico' END",
+      "test": "True",
+      "hints": [
+        "CASE evalúa condiciones en orden",
+        "Primera condición True se ejecuta",
+        "ELSE captura todo lo demás"
+      ],
+      "successMessage": "¡Bien! CASE es muy usado para clasificaciones en SQL."
+    },
+
+    {
+      "id": "learn_044",
+      "title": "SQL - COALESCE para Manejar NULLs",
+      "instruction": "Usa COALESCE() para reemplazar NULLs con valor por defecto.",
+      "theory": "COALESCE(val1, val2, ...) retorna el primer valor no NULL. Útil para reemplazar NULLs con defaults. Ejemplo: COALESCE(email, 'no-email@example.com')",
+      "syntax": "COALESCE(columna, 'default')",
+      "example": {
+        "code": "SELECT\n    nombre,\n    COALESCE(email, 'no-email@example.com') as email,\n    COALESCE(telefono, 'Sin teléfono') as telefono\nFROM usuarios;\n-- Si email es NULL, muestra 'no-email@example.com'\n-- Si telefono es NULL, muestra 'Sin teléfono'",
+        "explanation": "COALESCE reemplaza NULLs con valores default"
+      },
+      "starterCode": "SELECT\n    producto,\n    COALESCE(stock, ___) as stock_final,\n    COALESCE(descripcion, ___) as desc_final\nFROM inventario;\n\n-- Reemplaza ___ con: 0, 'Sin descripción'",
+      "solution": "COALESCE(stock, 0), COALESCE(descripcion, 'Sin descripción')",
+      "test": "True",
+      "hints": [
+        "COALESCE toma múltiples argumentos",
+        "Retorna el primero que no es NULL",
+        "Útil para evitar NULLs en resultados"
+      ],
+      "successMessage": "¡Excelente! COALESCE es esencial para manejar NULLs."
+    },
+
+    {
+      "id": "learn_045",
+      "title": "SQL - UNION vs UNION ALL",
+      "instruction": "Entiende la diferencia entre UNION (elimina duplicados) y UNION ALL (mantiene duplicados).",
+      "theory": "UNION combina resultados de 2+ queries eliminando duplicados (más lento). UNION ALL combina manteniendo duplicados (más rápido). Usa UNION ALL si sabes que no hay duplicados.",
+      "syntax": "SELECT ... UNION ALL SELECT ...",
+      "example": {
+        "code": "-- UNION (elimina duplicados)\nSELECT nombre FROM clientes_2023\nUNION\nSELECT nombre FROM clientes_2024;\n\n-- UNION ALL (más rápido, mantiene duplicados)\nSELECT nombre FROM ventas_enero\nUNION ALL\nSELECT nombre FROM ventas_febrero;\n-- Si un nombre está en ambos meses, aparece 2 veces",
+        "explanation": "UNION ALL es más rápido porque no verifica duplicados"
+      },
+      "starterCode": "-- Combina ventas de Q1 y Q2 (sin eliminar duplicados)\nSELECT producto, cantidad FROM ventas_q1\n___\nSELECT producto, cantidad FROM ventas_q2;\n\n-- Reemplaza ___ con: UNION ALL",
+      "solution": "UNION ALL",
+      "test": "True",
+      "hints": [
+        "UNION ALL mantiene todos los registros",
+        "Más rápido que UNION",
+        "Usa UNION si necesitas eliminar duplicados"
+      ],
+      "successMessage": "¡Bien! Conocer UNION ALL mejora performance."
+    },
+
+    {
+      "id": "learn_046",
+      "title": "Python - F-strings para Formateo",
+      "instruction": "Usa f-strings para formatear strings con variables y expresiones.",
+      "theory": "f-strings (f'...{var}...') son la forma moderna de formatear strings en Python. Permiten expresiones dentro de {}. Más legible que % o .format(). Disponibles desde Python 3.6+.",
+      "syntax": "f'Hola {nombre}, tienes {edad} años'",
+      "example": {
+        "code": "nombre = 'Ana'\nedad = 25\nsalario = 50000.5\n\n# F-string básico\nprint(f'Nombre: {nombre}, Edad: {edad}')\n\n# Con formato numérico\nprint(f'Salario: ${salario:,.2f}')  # $50,000.50\n\n# Con expresiones\nprint(f'Doble de edad: {edad * 2}')",
+        "explanation": "F-strings permiten variables y expresiones dentro de {}"
+      },
+      "starterCode": "producto = 'Laptop'\nprecio = 1299.99\ndescuento = 0.15\n\n# Calcula precio final con f-string\nprecio_final = precio * (1 - descuento)\n\nmensaje = f'Producto: {___}, Precio: ${___:.2f}'\nprint(mensaje)\n\n# Reemplaza ___ con: producto, precio_final",
+      "solution": "f'Producto: {producto}, Precio: ${precio_final:.2f}'",
+      "test": "'Laptop' in mensaje",
+      "hints": [
+        "{producto} inserta el valor de la variable",
+        "{precio_final:.2f} formatea a 2 decimales",
+        "F-strings evalúan expresiones dentro de {}"
+      ],
+      "successMessage": "¡Genial! F-strings son la mejor forma de formatear."
+    },
+
+    {
+      "id": "learn_047",
+      "title": "Python - List vs Dict Comprehension",
+      "instruction": "Crea un dict comprehension para mapear nombres a edades.",
+      "theory": "Dict comprehension: {key: value for item in iterable}. Similar a list comprehension pero crea diccionarios. Muy útil para transformar listas en dicts.",
+      "syntax": "{item: expresion for item in lista}",
+      "example": {
+        "code": "# List comprehension\ncuadrados_lista = [x**2 for x in range(5)]\nprint(cuadrados_lista)  # [0, 1, 4, 9, 16]\n\n# Dict comprehension\ncuadrados_dict = {x: x**2 for x in range(5)}\nprint(cuadrados_dict)  # {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}",
+        "explanation": "Dict comprehension crea {key: value} pairs"
+      },
+      "starterCode": "personas = [('Ana', 25), ('Bob', 30), ('Carlos', 28)]\n\n# Crea dict {nombre: edad}\nedad_por_nombre = {nombre: ___ for nombre, edad in personas}\n\nprint(edad_por_nombre)\n# {'Ana': 25, 'Bob': 30, 'Carlos': 28}\n\n# Reemplaza ___ con: edad",
+      "solution": "{nombre: edad for nombre, edad in personas}",
+      "test": "edad_por_nombre['Ana'] == 25",
+      "hints": [
+        "Sintaxis: {key: value for ...}",
+        "Desempaca tupla: for nombre, edad in personas",
+        "Key es nombre, value es edad"
+      ],
+      "successMessage": "¡Perfecto! Dict comprehensions son muy útiles."
+    },
+
+    {
+      "id": "learn_048",
+      "title": "Pandas - Query Method",
+      "instruction": "Usa query() para filtrar con sintaxis similar a SQL.",
+      "theory": "query(string) permite filtrar DataFrames con expresiones tipo SQL. Más legible que df[df['col'] > valor]. Usa @ para variables externas.",
+      "syntax": "df.query('columna > valor')",
+      "example": {
+        "code": "import pandas as pd\n\ndf = pd.DataFrame({\n    'nombre': ['Ana', 'Bob', 'Carlos'],\n    'edad': [25, 30, 35],\n    'ciudad': ['Lima', 'Madrid', 'Lima']\n})\n\n# Filtro tradicional\nresult1 = df[df['edad'] > 25]\n\n# Con query (más legible)\nresult2 = df.query('edad > 25')\n\n# Query con múltiples condiciones\nresult3 = df.query('edad > 25 and ciudad == \"Lima\"')\n\nprint(result3)",
+        "explanation": "query() es más legible para filtros complejos"
+      },
+      "starterCode": "import pandas as pd\n\ndf = pd.DataFrame({\n    'producto': ['A', 'B', 'C', 'D'],\n    'precio': [100, 200, 150, 300],\n    'stock': [5, 0, 10, 3]\n})\n\nlimite_precio = 150\n\n# Filtra: precio <= limite_precio AND stock > 0\nresult = df.query('precio <= ___ and stock > ___')\n\nprint(result)\n\n# Reemplaza ___ con: @limite_precio, 0",
+      "solution": "df.query('precio <= @limite_precio and stock > 0')",
+      "test": "len(result) >= 1",
+      "hints": [
+        "@ antes de variable externa: @limite_precio",
+        "and para múltiples condiciones",
+        "String entre comillas: 'precio <= @limite_precio and stock > 0'"
+      ],
+      "successMessage": "¡Bien! query() hace el código más legible."
+    },
+
+    {
+      "id": "learn_049",
+      "title": "Pandas - Explode para Listas",
+      "instruction": "Usa explode() para expandir listas en columnas a múltiples filas.",
+      "theory": "explode(columna) convierte cada elemento de una lista en una fila separada. Útil cuando tienes columnas con listas y quieres normalizarlas.",
+      "syntax": "df.explode('columna_con_listas')",
+      "example": {
+        "code": "import pandas as pd\n\ndf = pd.DataFrame({\n    'nombre': ['Ana', 'Bob'],\n    'hobbies': [['leer', 'nadar'], ['correr', 'cocinar', 'viajar']]\n})\n\nprint('Antes:')\nprint(df)\n#   nombre              hobbies\n# 0    Ana      [leer, nadar]\n# 1    Bob  [correr, cocinar, viajar]\n\ndf_exploded = df.explode('hobbies')\nprint('\\nDespués:')\nprint(df_exploded)\n#   nombre  hobbies\n# 0    Ana     leer\n# 0    Ana    nadar\n# 1    Bob   correr\n# 1    Bob  cocinar\n# 1    Bob   viajar",
+        "explanation": "Cada hobby se convierte en fila separada"
+      },
+      "starterCode": "import pandas as pd\n\ndf = pd.DataFrame({\n    'producto': ['A', 'B'],\n    'categorias': [['electrónica', 'hogar'], ['ropa', 'deportes']]\n})\n\n# Explode la columna categorias\ndf_expandido = df.explode(___)\n\nprint(df_expandido)\n\n# Reemplaza ___ con: 'categorias'",
+      "solution": "df.explode('categorias')",
+      "test": "len(df_expandido) == 4",
+      "hints": [
+        "explode() necesita el nombre de la columna con listas",
+        "Cada elemento de la lista se convierte en fila",
+        "El índice se repite para las filas expandidas"
+      ],
+      "successMessage": "¡Excelente! explode() es útil para normalizar datos."
+    },
+
+    {
+      "id": "learn_050",
+      "title": "PySpark - UDF (User Defined Function)",
+      "instruction": "Crea un UDF para aplicar función personalizada a columna.",
+      "theory": "UDF permite usar funciones Python en Spark. Decora con @udf y especifica tipo de retorno. ADVERTENCIA: UDFs son lentos (no aprovechan optimizaciones de Spark). Usa funciones nativas cuando sea posible.",
+      "syntax": "@udf(returnType=StringType())\ndef mi_func(valor):",
+      "example": {
+        "code": "from pyspark.sql.functions import udf\nfrom pyspark.sql.types import StringType\n\n@udf(returnType=StringType())\ndef categorizar_edad(edad):\n    if edad < 18:\n        return 'Menor'\n    elif edad < 65:\n        return 'Adulto'\n    else:\n        return 'Senior'\n\ndf = spark.createDataFrame([(25,), (70,), (15,)], ['edad'])\ndf = df.withColumn('categoria', categorizar_edad('edad'))\ndf.show()\n# +----+---------+\n# |edad|categoria|\n# +----+---------+\n# |  25|   Adulto|\n# |  70|   Senior|",
+        "explanation": "UDF aplica lógica Python a cada fila"
+      },
+      "starterCode": "from pyspark.sql.functions import udf\nfrom pyspark.sql.types import IntegerType\n\n# Define UDF que calcula longitud de string\n@udf(returnType=___)\ndef calcular_longitud(texto):\n    return len(texto) if texto else 0\n\n# Asume df con columna 'nombre'\ndf = df.withColumn('longitud_nombre', calcular_longitud('nombre'))\ndf.show()\n\n# Reemplaza ___ con: IntegerType()",
+      "solution": "@udf(returnType=IntegerType())",
+      "test": "True",
+      "hints": [
+        "returnType debe coincidir con lo que retorna la función",
+        "IntegerType() para enteros",
+        "StringType() para strings, BooleanType() para bool"
+      ],
+      "successMessage": "¡Bien! UDFs permiten lógica custom, pero úsalos con cuidado."
     }
   ]
 }
