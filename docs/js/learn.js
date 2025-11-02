@@ -343,7 +343,7 @@ async function initSQL() {
 
         sqlDb = new SQL.Database();
 
-        // Create sample tables for SQL exercises
+        // === TABLA: calificaciones (para RANK, DENSE_RANK) ===
         sqlDb.run(`
             CREATE TABLE IF NOT EXISTS calificaciones (
                 id INTEGER PRIMARY KEY,
@@ -360,6 +360,7 @@ async function initSQL() {
             (4, 'Diana', 80);
         `);
 
+        // === TABLA: examenes (general) ===
         sqlDb.run(`
             CREATE TABLE IF NOT EXISTS examenes (
                 id INTEGER PRIMARY KEY,
@@ -377,7 +378,175 @@ async function initSQL() {
             (5, 'Charlie', 80);
         `);
 
-        displayConsoleOutput('✓ SQL.js listo\n', 'success');
+        // === TABLA: ventas (para CTEs, GROUPING SETS, ROWS BETWEEN) ===
+        sqlDb.run(`
+            CREATE TABLE IF NOT EXISTS ventas (
+                id INTEGER PRIMARY KEY,
+                region TEXT,
+                categoria TEXT,
+                producto TEXT,
+                monto REAL,
+                dia INTEGER,
+                cantidad INTEGER
+            );
+        `);
+
+        sqlDb.run(`
+            INSERT INTO ventas (id, region, categoria, producto, monto, dia, cantidad) VALUES
+            (1, 'Norte', 'Electrónica', 'Laptop', 150.5, 1, 10),
+            (2, 'Norte', 'Electrónica', 'Mouse', 80.0, 2, 25),
+            (3, 'Sur', 'Ropa', 'Camisa', 120.0, 3, 15),
+            (4, 'Sur', 'Ropa', 'Pantalón', 90.0, 4, 20),
+            (5, 'Este', 'Electrónica', 'Teclado', 200.0, 5, 12),
+            (6, 'Oeste', 'Alimentos', 'Café', 60.0, 6, 30),
+            (7, 'Norte', 'Ropa', 'Zapatos', 110.0, 7, 18),
+            (8, 'Sur', 'Electrónica', 'Monitor', 180.0, 8, 8);
+        `);
+
+        // === TABLA: ventas_vendedores (para ROW_NUMBER, PARTITION BY) ===
+        sqlDb.run(`
+            CREATE TABLE IF NOT EXISTS ventas_vendedores (
+                id INTEGER PRIMARY KEY,
+                vendedor TEXT,
+                region TEXT,
+                ventas REAL
+            );
+        `);
+
+        sqlDb.run(`
+            INSERT INTO ventas_vendedores (id, vendedor, region, ventas) VALUES
+            (1, 'Juan', 'Norte', 15000),
+            (2, 'María', 'Norte', 18000),
+            (3, 'Pedro', 'Norte', 12000),
+            (4, 'Ana', 'Sur', 20000),
+            (5, 'Luis', 'Sur', 16000),
+            (6, 'Carmen', 'Sur', 14000),
+            (7, 'Diego', 'Este', 19000),
+            (8, 'Sofia', 'Este', 17000);
+        `);
+
+        // === TABLA: ventas_mensuales (para LAG, comparaciones temporales) ===
+        sqlDb.run(`
+            CREATE TABLE IF NOT EXISTS ventas_mensuales (
+                id INTEGER PRIMARY KEY,
+                mes INTEGER,
+                ventas REAL
+            );
+        `);
+
+        sqlDb.run(`
+            INSERT INTO ventas_mensuales (id, mes, ventas) VALUES
+            (1, 1, 10000),
+            (2, 2, 12000),
+            (3, 3, 11500),
+            (4, 4, 13000),
+            (5, 5, 14500),
+            (6, 6, 13800);
+        `);
+
+        // === TABLA: productos (para CASE expressions) ===
+        sqlDb.run(`
+            CREATE TABLE IF NOT EXISTS productos (
+                id INTEGER PRIMARY KEY,
+                producto TEXT,
+                precio REAL
+            );
+        `);
+
+        sqlDb.run(`
+            INSERT INTO productos (id, producto, precio) VALUES
+            (1, 'Laptop Premium', 1200),
+            (2, 'Laptop Standard', 800),
+            (3, 'Mouse Gamer', 150),
+            (4, 'Teclado Mecánico', 650),
+            (5, 'Monitor 4K', 450),
+            (6, 'Webcam HD', 80);
+        `);
+
+        // === TABLA: inventario (para COALESCE, manejo de NULLs) ===
+        sqlDb.run(`
+            CREATE TABLE IF NOT EXISTS inventario (
+                id INTEGER PRIMARY KEY,
+                producto TEXT,
+                stock INTEGER,
+                descripcion TEXT
+            );
+        `);
+
+        sqlDb.run(`
+            INSERT INTO inventario (id, producto, stock, descripcion) VALUES
+            (1, 'Laptop', 10, 'Laptop de alta gama'),
+            (2, 'Mouse', NULL, 'Mouse óptico'),
+            (3, 'Teclado', 5, NULL),
+            (4, 'Monitor', NULL, NULL),
+            (5, 'Webcam', 15, 'Webcam Full HD');
+        `);
+
+        // === TABLAS: ventas_q1, ventas_q2 (para UNION) ===
+        sqlDb.run(`
+            CREATE TABLE IF NOT EXISTS ventas_q1 (
+                producto TEXT,
+                cantidad INTEGER
+            );
+        `);
+
+        sqlDb.run(`
+            INSERT INTO ventas_q1 (producto, cantidad) VALUES
+            ('Laptop', 50),
+            ('Mouse', 120),
+            ('Teclado', 80);
+        `);
+
+        sqlDb.run(`
+            CREATE TABLE IF NOT EXISTS ventas_q2 (
+                producto TEXT,
+                cantidad INTEGER
+            );
+        `);
+
+        sqlDb.run(`
+            INSERT INTO ventas_q2 (producto, cantidad) VALUES
+            ('Laptop', 60),
+            ('Monitor', 40),
+            ('Webcam', 90);
+        `);
+
+        // === TABLAS ADICIONALES (para casos edge) ===
+        sqlDb.run(`
+            CREATE TABLE IF NOT EXISTS empleados (
+                id INTEGER PRIMARY KEY,
+                empleado TEXT,
+                salario REAL
+            );
+        `);
+
+        sqlDb.run(`
+            INSERT INTO empleados (id, empleado, salario) VALUES
+            (1, 'Bob', 100000),
+            (2, 'Alice', 90000),
+            (3, 'Charlie', 85000);
+        `);
+
+        sqlDb.run(`
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id INTEGER PRIMARY KEY,
+                nombre TEXT,
+                email TEXT,
+                telefono TEXT,
+                edad INTEGER,
+                activo INTEGER
+            );
+        `);
+
+        sqlDb.run(`
+            INSERT INTO usuarios (id, nombre, email, telefono, edad, activo) VALUES
+            (1, 'Juan', 'juan@example.com', '123456789', 30, 1),
+            (2, 'María', NULL, '987654321', 25, 1),
+            (3, 'Pedro', 'pedro@example.com', NULL, 28, 0);
+        `);
+
+        displayConsoleOutput('✓ SQL.js listo con todas las tablas cargadas\n', 'success');
+        displayConsoleOutput('📊 Tablas disponibles: calificaciones, ventas, ventas_vendedores, ventas_mensuales, productos, inventario, y más\n', 'info');
     } catch (error) {
         displayConsoleOutput(`Error inicializando SQL: ${error.message}`, 'error');
         throw error;
