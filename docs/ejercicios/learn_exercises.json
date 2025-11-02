@@ -90,6 +90,7 @@
       "instruction": "Importa pandas y lee el archivo 'sample_data.csv' en un DataFrame llamado 'df'. Luego imprime las primeras 3 filas.",
       "theory": "Pandas es la librería principal para análisis de datos en Python. pd.read_csv() lee archivos CSV y retorna un DataFrame. df.head(n) muestra las primeras n filas.",
       "syntax": "df = pd.read_csv('archivo.csv')",
+      "dataset": "sample_data.csv",
       "example": {
         "code": "import pandas as pd\ndf = pd.read_csv('data.csv')\nprint(df.head())  # Primeras 5 filas por defecto",
         "explanation": "Lee data.csv y muestra las primeras filas"

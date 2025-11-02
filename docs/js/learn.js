@@ -227,6 +227,11 @@ async function runPython(code) {
     }
 
     try {
+        // Load dataset if exercise requires one
+        if (currentExercise.dataset) {
+            await loadDatasetIntoPyodide(currentExercise.dataset);
+        }
+
         // Capture output
         await pyodideInstance.runPythonAsync(`
 import sys
@@ -273,6 +278,48 @@ async function initPyodide() {
     await pyodideInstance.loadPackage(['numpy', 'pandas']);
 
     displayConsoleOutput('✓ Python listo\n', 'success');
+}
+
+// Load dataset into Pyodide filesystem
+async function loadDatasetIntoPyodide(filename) {
+    if (!pyodideInstance) {
+        await initPyodide();
+    }
+
+    try {
+        // Check if file is already loaded
+        try {
+            const exists = await pyodideInstance.runPythonAsync(`
+import os
+os.path.exists('${filename}')
+            `);
+            if (exists) {
+                console.log(`✓ Dataset ${filename} already loaded`);
+                return;
+            }
+        } catch (e) {
+            // File doesn't exist, continue to load it
+        }
+
+        // Fetch the dataset file
+        const response = await fetch(`datasets/${filename}`);
+        if (!response.ok) {
+            console.warn(`⚠️ Dataset ${filename} not found at path: datasets/${filename}`);
+            displayConsoleOutput(`⚠️ Advertencia: Dataset "${filename}" no encontrado. El código puede fallar si intenta usarlo.\n`, 'warning');
+            return;
+        }
+
+        const content = await response.text();
+
+        // Write file to Pyodide's virtual filesystem
+        pyodideInstance.FS.writeFile(filename, content);
+
+        console.log(`✓ Dataset ${filename} loaded successfully into Pyodide filesystem`);
+        displayConsoleOutput(`✓ Dataset "${filename}" cargado correctamente\n`, 'success');
+    } catch (error) {
+        console.error(`✗ Error loading dataset ${filename}:`, error);
+        displayConsoleOutput(`✗ Error al cargar dataset "${filename}": ${error.message}\n`, 'error');
+    }
 }
 
 // Validate solution
