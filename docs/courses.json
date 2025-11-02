@@ -1,0 +1,255 @@
+{
+  "categories": [
+    {
+      "id": "python-fundamentals",
+      "name": "Python Fundamentals",
+      "icon": "🐍",
+      "color": "#3776ab",
+      "description": "Aprende los fundamentos de Python desde cero",
+      "courses": [
+        {
+          "id": "python-basics",
+          "title": "Python Basics",
+          "description": "List comprehensions, lambdas, funciones básicas",
+          "difficulty": "beginner",
+          "lessons": 10,
+          "duration": "2 horas",
+          "exerciseIds": ["learn_001", "learn_002", "learn_003", "learn_004"]
+        },
+        {
+          "id": "python-advanced",
+          "title": "Python Advanced",
+          "description": "Decoradores, generadores, context managers",
+          "difficulty": "intermediate",
+          "lessons": 8,
+          "duration": "3 horas",
+          "exerciseIds": ["learn_011", "learn_012", "learn_013", "learn_014", "learn_015"]
+        }
+      ]
+    },
+    {
+      "id": "pandas",
+      "name": "Pandas",
+      "icon": "🐼",
+      "color": "#150458",
+      "description": "Análisis y manipulación de datos con Pandas",
+      "courses": [
+        {
+          "id": "pandas-basics",
+          "title": "Pandas Basics",
+          "description": "DataFrames, lectura de datos, filtrado básico",
+          "difficulty": "beginner",
+          "lessons": 12,
+          "duration": "3 horas",
+          "exerciseIds": ["learn_005", "learn_006", "learn_007", "learn_008", "learn_009", "learn_010"]
+        },
+        {
+          "id": "pandas-advanced",
+          "title": "Pandas Advanced",
+          "description": "GroupBy, merge, pivot, window functions",
+          "difficulty": "intermediate",
+          "lessons": 15,
+          "duration": "4 horas",
+          "exerciseIds": ["learn_016", "learn_017", "learn_018", "learn_019", "learn_020"]
+        },
+        {
+          "id": "pandas-time-series",
+          "title": "Pandas Time Series",
+          "description": "Manejo de series temporales, resample, rolling",
+          "difficulty": "intermediate",
+          "lessons": 10,
+          "duration": "3 horas",
+          "exerciseIds": ["learn_021", "learn_022", "learn_023", "learn_024"]
+        },
+        {
+          "id": "pandas-optimization",
+          "title": "Pandas Optimization",
+          "description": "Vectorización, dtypes, chunking, performance",
+          "difficulty": "advanced",
+          "lessons": 8,
+          "duration": "2.5 horas",
+          "exerciseIds": ["learn_035", "learn_036", "learn_037", "learn_038"]
+        }
+      ]
+    },
+    {
+      "id": "sql",
+      "name": "SQL",
+      "icon": "🗄️",
+      "color": "#cc2927",
+      "description": "Consultas SQL avanzadas y optimización",
+      "courses": [
+        {
+          "id": "sql-basics",
+          "title": "SQL Basics",
+          "description": "SELECT, WHERE, JOIN, GROUP BY",
+          "difficulty": "beginner",
+          "lessons": 10,
+          "duration": "2.5 horas",
+          "exerciseIds": ["learn_025", "learn_026", "learn_027"]
+        },
+        {
+          "id": "sql-advanced",
+          "title": "SQL Advanced",
+          "description": "Window functions, CTEs, subconsultas complejas",
+          "difficulty": "intermediate",
+          "lessons": 12,
+          "duration": "4 horas",
+          "exerciseIds": ["learn_028", "learn_029", "learn_030", "learn_031"]
+        },
+        {
+          "id": "sql-optimization",
+          "title": "SQL Optimization",
+          "description": "Índices, query plans, performance tuning",
+          "difficulty": "advanced",
+          "lessons": 8,
+          "duration": "3 horas",
+          "exerciseIds": []
+        }
+      ]
+    },
+    {
+      "id": "pyspark",
+      "name": "PySpark",
+      "icon": "⚡",
+      "color": "#e25a1c",
+      "description": "Big Data processing con Apache Spark",
+      "courses": [
+        {
+          "id": "pyspark-basics",
+          "title": "PySpark Basics",
+          "description": "RDDs, DataFrames, transformations, actions",
+          "difficulty": "intermediate",
+          "lessons": 10,
+          "duration": "3.5 horas",
+          "exerciseIds": ["learn_040", "learn_041", "learn_042"]
+        },
+        {
+          "id": "spark-sql",
+          "title": "Spark SQL",
+          "description": "SQL en Spark, optimización de queries",
+          "difficulty": "intermediate",
+          "lessons": 8,
+          "duration": "3 horas",
+          "exerciseIds": ["learn_043", "learn_044", "learn_045"]
+        },
+        {
+          "id": "pyspark-advanced",
+          "title": "PySpark Advanced",
+          "description": "UDFs, partitioning, broadcast, optimization",
+          "difficulty": "advanced",
+          "lessons": 12,
+          "duration": "4 horas",
+          "exerciseIds": ["learn_046", "learn_047", "learn_048", "learn_049"]
+        }
+      ]
+    },
+    {
+      "id": "data-engineering",
+      "name": "Data Engineering",
+      "icon": "🔧",
+      "color": "#1e88e5",
+      "description": "Herramientas y prácticas de Data Engineering",
+      "courses": [
+        {
+          "id": "airflow",
+          "title": "Apache Airflow",
+          "description": "Orquestación de workflows, DAGs, operators",
+          "difficulty": "intermediate",
+          "lessons": 0,
+          "duration": "Próximamente",
+          "exerciseIds": [],
+          "comingSoon": true
+        },
+        {
+          "id": "databricks",
+          "title": "Databricks",
+          "description": "Plataforma unificada de analytics",
+          "difficulty": "intermediate",
+          "lessons": 0,
+          "duration": "Próximamente",
+          "exerciseIds": [],
+          "comingSoon": true
+        },
+        {
+          "id": "delta-lake",
+          "title": "Delta Lake",
+          "description": "Data lakehouse, ACID transactions",
+          "difficulty": "advanced",
+          "lessons": 0,
+          "duration": "Próximamente",
+          "exerciseIds": [],
+          "comingSoon": true
+        }
+      ]
+    },
+    {
+      "id": "cloud",
+      "name": "Cloud Platforms",
+      "icon": "☁️",
+      "color": "#4285f4",
+      "description": "Servicios de datos en la nube",
+      "courses": [
+        {
+          "id": "aws-data",
+          "title": "AWS Data Services",
+          "description": "S3, Redshift, Glue, Athena, EMR",
+          "difficulty": "intermediate",
+          "lessons": 0,
+          "duration": "Próximamente",
+          "exerciseIds": [],
+          "comingSoon": true
+        },
+        {
+          "id": "azure-data",
+          "title": "Azure Data Services",
+          "description": "Data Factory, Synapse, Databricks",
+          "difficulty": "intermediate",
+          "lessons": 0,
+          "duration": "Próximamente",
+          "exerciseIds": [],
+          "comingSoon": true
+        },
+        {
+          "id": "gcp-data",
+          "title": "GCP Data Services",
+          "description": "BigQuery, Dataflow, Dataproc",
+          "difficulty": "intermediate",
+          "lessons": 0,
+          "duration": "Próximamente",
+          "exerciseIds": [],
+          "comingSoon": true
+        }
+      ]
+    },
+    {
+      "id": "automation",
+      "name": "Automation & Integration",
+      "icon": "🤖",
+      "color": "#7c3aed",
+      "description": "Automatización y integración de procesos",
+      "courses": [
+        {
+          "id": "n8n",
+          "title": "n8n Workflow Automation",
+          "description": "Automatización visual de workflows",
+          "difficulty": "beginner",
+          "lessons": 0,
+          "duration": "Próximamente",
+          "exerciseIds": [],
+          "comingSoon": true
+        },
+        {
+          "id": "power-platform",
+          "title": "Microsoft Power Platform",
+          "description": "Power Automate, Power Apps, Power BI",
+          "difficulty": "beginner",
+          "lessons": 0,
+          "duration": "Próximamente",
+          "exerciseIds": [],
+          "comingSoon": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursos de Aprendizaje - Data Engineering Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/courses.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>📚 Cursos de Aprendizaje</h1>
+            <p>Aprende Data Engineering paso a paso con ejercicios prácticos</p>
+            <div class="header-actions">
+                <a href="index.html" class="btn-secondary">← Volver al Inicio</a>
+                <a href="solve.html" class="btn-primary">Desafíos SSR/SR →</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container courses-main">
+        <!-- Learning Path Progress -->
+        <section class="learning-progress-section">
+            <h2>📊 Tu Progreso de Aprendizaje</h2>
+            <div class="progress-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="total-lessons-completed">0</div>
+                    <div class="stat-label">Lecciones completadas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="total-courses-started">0</div>
+                    <div class="stat-label">Cursos iniciados</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="total-hours-learned">0h</div>
+                    <div class="stat-label">Horas de estudio</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Navigation -->
+        <section class="categories-section">
+            <h2>🎯 Rutas de Aprendizaje</h2>
+            <div class="categories-filter">
+                <button class="filter-btn active" data-filter="all">Todas</button>
+                <button class="filter-btn" data-filter="active">En Progreso</button>
+                <button class="filter-btn" data-filter="completed">Completadas</button>
+                <button class="filter-btn" data-filter="coming-soon">Próximamente</button>
+            </div>
+        </section>
+
+        <!-- Categories Grid -->
+        <div id="categories-container" class="categories-grid">
+            <!-- Categories will be loaded dynamically -->
+        </div>
+
+        <!-- Course Modal -->
+        <div id="course-modal" class="modal" style="display: none;">
+            <div class="modal-overlay" onclick="closeCourseModal()"></div>
+            <div class="modal-content course-modal-content">
+                <button class="modal-close" onclick="closeCourseModal()">×</button>
+
+                <div class="course-modal-header">
+                    <div class="course-icon" id="modal-course-icon">🐍</div>
+                    <div class="course-title-section">
+                        <h2 id="modal-course-title">Course Title</h2>
+                        <p id="modal-course-description">Course description</p>
+                    </div>
+                </div>
+
+                <div class="course-modal-meta">
+                    <span class="meta-item">
+                        <strong>📖 Lecciones:</strong> <span id="modal-lessons-count">0</span>
+                    </span>
+                    <span class="meta-item">
+                        <strong>⏱️ Duración:</strong> <span id="modal-duration">0 horas</span>
+                    </span>
+                    <span class="meta-item">
+                        <strong>📊 Dificultad:</strong> <span id="modal-difficulty">Beginner</span>
+                    </span>
+                    <span class="meta-item">
+                        <strong>✅ Completado:</strong> <span id="modal-progress">0%</span>
+                    </span>
+                </div>
+
+                <div class="course-modal-progress">
+                    <div class="progress-bar-track-global">
+                        <div class="progress-bar-fill-global" id="modal-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="course-modal-lessons" id="modal-lessons-list">
+                    <!-- Lessons will be loaded here -->
+                </div>
+
+                <div class="course-modal-actions">
+                    <button class="btn-primary" id="continue-course-btn" onclick="continueCourse()">
+                        Continuar Curso
+                    </button>
+                    <button class="btn-secondary" onclick="closeCourseModal()">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>Data Engineering Practice Hub - Aprende haciendo</p>
+    </footer>
+
+    <script src="js/progress.js"></script>
+    <script src="js/courses.js"></script>
+</body>
+</html>
